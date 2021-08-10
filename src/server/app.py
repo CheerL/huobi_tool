@@ -1,17 +1,34 @@
 from flask import Flask, jsonify, request
-from model import get_trade_list
+from model import get_trade_list, get_open_price, get_profit, get_message
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route('/', methods=['POST'])
-def index():
+def price():
     args = request.json
-    print(args)
     trade_list = get_trade_list(args['symbol'], args['start'], args['end'])
-    print(len(trade_list))
+    print(args, len(trade_list))
     return jsonify(trade_list)
+
+@app.route('/open', methods=['POST'])
+def open():
+    args = request.json
+    data = get_open_price(args['symbol'], args['start'])
+    return jsonify(data)
+
+@app.route('/profit', methods=['POST'])
+def profit():
+    args = request.json
+    data = get_profit(args['name'], args['month'])
+    return jsonify(data)
+
+@app.route('/message', methods=['POST'])
+def message():
+    args = request.json
+    data = get_message(args['date'], args['name'], args['profit'])
+    return jsonify(data)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

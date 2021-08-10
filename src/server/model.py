@@ -1,7 +1,8 @@
 import os
+import re
 import configparser
 import time as _time
-from sqlalchemy import Column, create_engine, VARCHAR, INTEGER, REAL, TEXT, func
+from sqlalchemy import Column, create_engine, VARCHAR, INTEGER, REAL, TEXT, func, DATE, Table
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -21,8 +22,6 @@ PGNAME = config.get('data', 'PGDatabase')
 Base = declarative_base()
 TRADE_CLASS = {}
 MS_IN_DAY = 60*60*24*1000
-
-
 
 
 class Target(Base):
@@ -113,20 +112,6 @@ def create_Trade(day):
         price = Column(REAL)
         amount = Column(REAL)
         direction = Column(VARCHAR(5))
-
-        # @staticmethod
-        # def from_redis(key, value):
-        #     key = key.decode('utf-8')
-        #     value = value.decode('utf-8')
-        #     _, symbol, _, num = key.split('_')
-        #     ts, price, amount, direction = value.split(',')
-        #     return Trade(
-        #         symbol=symbol,
-        #         ts=str(int(ts)+int(num)/1000),
-        #         price=float(price),
-        #         amount=float(amount),
-        #         direction = direction
-        #     )
 
         @staticmethod
         def get_data(session, symbol, start, end):
@@ -232,4 +217,56 @@ def get_trade_list(symbol, start, end):
 
         return trade_list
 
+def get_open_price(symbol, start):
+    with get_session() as session:
+        start_time = get_time_from_str(start)
+        open_time = int(((start_time + MS_IN_DAY / 3) // MS_IN_DAY -1/3 ) * MS_IN_DAY)
+        Trade = get_Trade(open_time)
+        data = session.query(Trade).filter(
+            Trade.symbol == symbol,
+            Trade.ts >= str(open_time),
+            Trade.ts < str(open_time + 300000)
+        ).order_by(Trade.ts).first()
+        return {'open': data.price }
+
+def get_profit(name='', month=''):
+    with get_session() as session:
+        profit_human = Table('profit_human', Base.metadata, autoload=True, autoload_with=session.bind)
+        data = session.query(profit_human)
+        if name:
+            data = data.filter(profit_human.name == name)
+        if month:
+            data = data.filter(profit_human.month == month)
+        data = data.all()
+        res = [{
+            'key': index,
+            'name': item.name,
+            'date': item.date_str.strftime('%Y-%m-%d'),
+            'profit': item.profit,
+            'percent': item.percent
+        } for index, item in enumerate(data)]
+        return res
+
+def get_message(date, name, profit=0):
+    with get_session() as session:
+        data = session.query(Message).filter(Message.summary.like(f'{date}%{name[:3]}%'))
+        if len(data.all()) > 1:
+            data = data.filter(Message.summary.like(f'%{profit}%'))
+
+        if len(data.all()) == 0:
+            return '未找到记录'
+
+        data = data[0]
+        res = re.findall(r'(### 买入记录\n\n.*)\n### 总结', data.msg, re.DOTALL)
+        if res:
+            res = res[0].replace('\n', '\n\n').replace(date, '')
+            res = res.replace('| ---- | ---- | ---- | ---- | ---- | ---- |', '')
+            res = res.replace('000 |', ' |')
+            return res
+        else:
+            return '未找到记录'
+
+if __name__ == '__main__':
+    res = get_message('2021-08-11', '夜空中最亮的星', 6.7227)
+    print(res)
 
