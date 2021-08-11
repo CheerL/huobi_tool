@@ -1,4 +1,4 @@
-const url = 'http://34.150.119.94:5000/'
+const url = process.env.NODE_ENV === 'development' ? 'http://dev.cheerl.space:5000/' : 'http://server.cheerl.space:5000/'
 
 const post = (postfix, postdata) => {
   return fetch(url + postfix, {
