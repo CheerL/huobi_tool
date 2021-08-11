@@ -131,7 +131,6 @@ export const MonthProfitTable = () => {
             }
           }
         })
-        console.log(summary)
         for (const month in summary) {
           let item = summary[month]
           res = res.concat({
