@@ -1,7 +1,7 @@
 import React from 'react'
 import moment from 'moment'
 import { Chart, Axis, Geom, Tooltip } from 'bizgoblin';
-import { DatePicker, List, InputItem, Button } from 'antd-mobile';
+import { DatePicker, List, InputItem, Button, WhiteSpace, WingBlank } from 'antd-mobile';
 import { get_price_data, get_open_price } from './data'
 
 export const PriceChart = () => {
@@ -9,6 +9,7 @@ export const PriceChart = () => {
   const [end, setEnd] = React.useState('')
   const [symbol, setSymbol] = React.useState('')
   const [data, setData] = React.useState([{ ts: 0, acc_vol: 0, vol: 0, price: 0, percent: 0 }])
+  const [open, setOpen] = React.useState(0)
   const [base, setBase] = React.useState(0)
 
   const setDataWithBase = (base, old_data) => {
@@ -38,6 +39,7 @@ export const PriceChart = () => {
     get_open_price(symbol, start_time)
       .then(res => {
         setDataWithBase(res.open, data)
+        setOpen(res.open)
       })
       .catch(err => {
         console.log(err)
@@ -47,24 +49,35 @@ export const PriceChart = () => {
 
   return <>
     {data.length > 1 ? <PriceChartView data={data} /> : <div style={{ padding: '30vh 0 29vh 0' }}>无数据</div>}
-    <List>
-      <DatePicker value={start} onChange={setStart}>
-        <List.Item arrow="horizontal">开始时间</List.Item>
-      </DatePicker>
-      <DatePicker value={end} onChange={setEnd}>
-        <List.Item arrow="horizontal">结束时间</List.Item>
-      </DatePicker>
-      <InputItem value={symbol} onChange={setSymbol} style={{ textAlign: 'right' }}>
-        币种
-      </InputItem>
-      <InputItem type='digit' value={base} onChange={val => { setDataWithBase(val, data) }} style={{ textAlign: 'right' }}>
-        基准价格
-      </InputItem>
-      <Button type='primary' onClick={updateDate}>生成图表</Button>
-      <Button type='primary' onClick={updateBase}
-        disabled={symbol === '' || start === '' || data.length === 1}
-        >获取开盘价</Button>
-    </List>
+      <List>
+        <DatePicker value={start} onChange={setStart}>
+          <List.Item arrow="horizontal">开始时间</List.Item>
+        </DatePicker>
+        <DatePicker value={end} onChange={setEnd}>
+          <List.Item arrow="horizontal">结束时间</List.Item>
+        </DatePicker>
+        <InputItem value={symbol} onChange={setSymbol} style={{ textAlign: 'right' }}>
+          币种
+        </InputItem>
+        <InputItem type='digit' value={base} onChange={val => { setDataWithBase(val, data) }} style={{ textAlign: 'right' }}>
+          基准价格
+        </InputItem>
+        <WingBlank>
+        <Button
+          type='primary' onClick={updateDate}
+          disabled={ symbol === '' || start === '' || end === '' }
+        >生成图表
+        </Button>
+        <WhiteSpace />
+        <Button
+          type='primary' onClick={updateBase}
+          disabled={ symbol === '' || start === '' || data.length === 1 || open === Number(base) }
+        >获取开盘价
+        </Button>
+        <WhiteSpace />
+        </WingBlank>
+      </List>
+    
   </>
 }
 

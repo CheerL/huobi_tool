@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
 import { PriceChart } from './chart';
-import { ProfitTable } from './profit'
+import { ProfitTable, MonthProfitTable } from './profit'
 import { Button, WingBlank, WhiteSpace } from 'antd-mobile'
 
 function App() {
@@ -9,6 +9,9 @@ function App() {
     <Router>
       <div className="App">
         <Switch>
+          <Route path='/month_profit'>
+            <MonthProfitTable />
+          </Route>
           <Route path='/profit'>
             <ProfitTable />
           </Route>
@@ -28,6 +31,9 @@ function App() {
 const Index = () => {
   const history = useHistory()
   return <WingBlank>
+    <WhiteSpace />
+    <Button onClick={() => history.push('/month_profit')}>月收益表</Button>
+    <WhiteSpace />
     <Button onClick={() => history.push('/profit')}>收益表</Button>
     <WhiteSpace />
     <Button onClick={() => history.push('/price')}>价格图</Button>

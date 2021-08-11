@@ -247,6 +247,25 @@ def get_profit(name='', month=''):
         } for index, item in enumerate(data)]
         return res
 
+def get_month_profit(name='', month=''):
+    with get_session() as session:
+        month_profit = Table('month_profit', Base.metadata, autoload=True, autoload_with=session.bind)
+        data = session.query(month_profit)
+        if name:
+            data = data.filter(month_profit.name == name)
+        if month:
+            data = data.filter(month_profit.month == month)
+        data = data.all()
+        res = [{
+            'key': index,
+            'name': item.name,
+            'month': item.month,
+            'profit': item.profit,
+            'percent': item.percent,
+            'fee': item.fee
+        } for index, item in enumerate(data)]
+        return res
+
 def get_message(date, name, profit=0):
     with get_session() as session:
         data = session.query(Message).filter(Message.summary.like(f'{date}%{name[:3]}%'))
@@ -259,9 +278,10 @@ def get_message(date, name, profit=0):
         data = data[0]
         res = re.findall(r'(### 买入记录\n\n.*)\n### 总结', data.msg, re.DOTALL)
         if res:
-            res = res[0].replace('\n', '\n\n').replace(date, '')
-            res = res.replace('| ---- | ---- | ---- | ---- | ---- | ---- |', '')
-            res = res.replace('000 |', ' |')
+            res = res[0]+'\n'
+            res = re.sub(date + r' (.+?)000', r'\1', res)
+            res = re.sub(r'\|[^~\|]+?\|\n', r'|\n', res)
+            res = re.sub(r'\| (\d*?\.\d{0,3})\d*? \|\n', r'| \1 |\n', res)
             return res
         else:
             return '未找到记录'

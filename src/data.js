@@ -42,6 +42,14 @@ export const get_profit = (name, month) => {
   return post('profit', data)
 }
 
+export const get_month_profit = (name, month) => {
+  const data = {
+    'name': name,
+    'month': month
+  }
+  return post('month_profit', data)
+}
+
 export const get_message = (name, date, profit) => {
   const data = {
     'name': name,

@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from model import get_trade_list, get_open_price, get_profit, get_message
+from model import get_trade_list, get_open_price, get_profit, get_message, get_month_profit
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -22,6 +22,12 @@ def open():
 def profit():
     args = request.json
     data = get_profit(args['name'], args['month'])
+    return jsonify(data)
+
+@app.route('/month_profit', methods=['POST'])
+def month_profit():
+    args = request.json
+    data = get_month_profit(args['name'], args['month'])
     return jsonify(data)
 
 @app.route('/message', methods=['POST'])
