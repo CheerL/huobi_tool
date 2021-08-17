@@ -87,7 +87,6 @@ const time_formatter = ts => {
 }
 
 const onShowTooltip = ev => {
-  console.log(ev)
   const item = { ...ev.items[0] }
   item.name = '单笔交易量'
   item.marker = { ...item.marker, fill: '#d3f5ff' }

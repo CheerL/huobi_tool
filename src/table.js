@@ -219,7 +219,7 @@ export const CurrencyDayTable = () => {
   const expandFunc = (record, text, setText) => {
     get_record(record.currency, record.day)
       .then(res => {
-        const table_main = res.map(item => `| ${item.name} | ${item.time} | ${item.price} | ${item.vol} | ${item.direction==='buy' ? '买入' : '卖出'} |`).join('\n')
+        const table_main = res.map(item => `| ${item.name.indexOf('小号') > -1 ? '夜空中...欣(小号)' : item.name} | ${item.time.slice(4)} | ${item.price.toPrecision(4)} | ${item.vol.toFixed(1)} | ${item.direction==='buy' ? '买' : '卖'} |`).join('\n')
         setText('### 明细\n| 姓名 | 时间 | 价格 | 成交额 | 方向 |\n'+
           '| :----: | :----: | :----: | :----: | :----: |\n'+
           table_main+'\n\n### 总计\n'+
