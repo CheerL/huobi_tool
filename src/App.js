@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
 import { PriceChart } from './chart';
-import { ProfitTable, MonthProfitTable } from './profit'
+import { ProfitTable, MonthProfitTable, CurrencyDayTable } from './table'
 import { Button, WingBlank, WhiteSpace } from 'antd-mobile'
 
 function App() {
@@ -17,6 +17,9 @@ function App() {
           </Route>
           <Route path='/price'>
             <PriceChart />
+          </Route>
+          <Route path='/currency_day'>
+            <CurrencyDayTable />
           </Route>
           <Route path='/'>
             <Index />
@@ -35,6 +38,8 @@ const Index = () => {
     <Button onClick={() => history.push('/month_profit')}>月收益表</Button>
     <WhiteSpace />
     <Button onClick={() => history.push('/profit')}>收益表</Button>
+    <WhiteSpace />
+    <Button onClick={() => history.push('/currency_day')}>币种单日收益表</Button>
     <WhiteSpace />
     <Button onClick={() => history.push('/price')}>价格图</Button>
   </WingBlank>

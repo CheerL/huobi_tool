@@ -234,9 +234,9 @@ def get_profit(name='', month=''):
         profit_human = Table('profit_human', Base.metadata, autoload=True, autoload_with=session.bind)
         data = session.query(profit_human)
         if name:
-            data = data.filter(profit_human.name == name)
+            data = data.filter(profit_human.c.name == name)
         if month:
-            data = data.filter(profit_human.month == month)
+            data = data.filter(profit_human.c.month == month)
         data = data.all()
         res = [{
             'key': index,
@@ -252,9 +252,9 @@ def get_month_profit(name='', month=''):
         month_profit = Table('month_profit', Base.metadata, autoload=True, autoload_with=session.bind)
         data = session.query(month_profit)
         if name:
-            data = data.filter(month_profit.name == name)
+            data = data.filter(month_profit.c.name == name)
         if month:
-            data = data.filter(month_profit.month == month)
+            data = data.filter(month_profit.c.month == month)
         data = data.all()
         res = [{
             'key': index,
@@ -282,11 +282,51 @@ def get_message(date, name, profit=0):
             res = re.sub(date + r' (.+?)000', r'\1', res)
             res = re.sub(r'\|[^~\|]+?\|\n', r'|\n', res)
             res = re.sub(r'\| (\d*?\.\d{0,3})\d*? \|\n', r'| \1 |\n', res)
+            res = re.sub(r'----', r':----:', res)
             return res
         else:
             return '未找到记录'
 
+
+def get_currency_day_profit(currency='', date=''):
+    with get_session() as session:
+        currency_day_profit = Table('currency_his_day', Base.metadata, autoload=True, autoload_with=session.bind)
+        data = session.query(currency_day_profit)
+        if currency:
+            data = data.filter(currency_day_profit.c.currency == currency)
+        if date:
+            data = data.filter(currency_day_profit.c.day == date)
+        data = data.all()
+        res = [{
+            'key': index,
+            'currency': item.currency,
+            'day': item.day,
+            'buy': round(item.buy, 1),
+            'sell': round(item.sell, 1),
+            'percent': round(item.profit * 100, 2),
+        } for index, item in enumerate(data)]
+        return res
+
+def get_record(currency='', date=''):
+    with get_session() as session:
+        record_human = Table('record_human', Base.metadata, autoload=True, autoload_with=session.bind)
+        data = session.query(record_human)
+        if currency:
+            data = data.filter(record_human.c.currency == currency)
+        if date:
+            data = data.filter(record_human.c.date == date)
+        data = data.all()
+        res = [{
+            'key': index,
+            'name': item.name,
+            'time': item.tm,
+            'price': item.price,
+            'vol': round(item.vol, 2),
+            'direction': item.direction,
+        } for index, item in enumerate(data)]
+        return res
+
 if __name__ == '__main__':
-    res = get_message('2021-08-11', '夜空中最亮的星', 6.7227)
+    res = get_record('BHD', '2021-08-17')
     print(res)
 

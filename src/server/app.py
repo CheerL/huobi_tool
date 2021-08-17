@@ -1,5 +1,9 @@
 from flask import Flask, jsonify, request
-from model import get_trade_list, get_open_price, get_profit, get_message, get_month_profit
+from model import (
+    get_trade_list, get_open_price, get_profit,
+    get_message, get_month_profit, get_currency_day_profit,
+    get_record
+    )
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -36,5 +40,17 @@ def message():
     data = get_message(args['date'], args['name'], args['profit'])
     return jsonify(data)
 
+@app.route('/currency_day', methods=['POST'])
+def currency_day():
+    args = request.json
+    data = get_currency_day_profit(args['currency'], args['date'])
+    return jsonify(data)
+
+@app.route('/record', methods=['POST'])
+def record():
+    args = request.json
+    data = get_record(args['currency'], args['date'])
+    return jsonify(data)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5008, debug=True)

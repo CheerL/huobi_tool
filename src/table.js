@@ -3,20 +3,16 @@ import ReactHtmlParser from 'react-html-parser';
 import marked from 'marked';
 import { Table, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { get_profit, get_message, get_month_profit } from './data'
+import {
+  get_profit, get_message, get_month_profit,
+  get_currency_day_profit, get_record
+} from './data'
 
-const Expand = ({ record }) => {
+const Expand = ({ record, func }) => {
   const [text, setText] = React.useState('加载中')
   React.useEffect(() => {
-    get_message(record.name, record.date, record.profit)
-      .then(res => {
-        setText(res)
-      })
-      .catch(err => {
-        console.log(err)
-        throw err
-      })
-  }, [])
+    func(record, text, setText)
+  }, [record, func])
   const outHtml = marked(text)
   return ReactHtmlParser(outHtml)
 }
@@ -60,7 +56,16 @@ export const ProfitTable = () => {
         throw err
       })
   }, [])
-
+  const expandFunc = (record, text, setText) => {
+    get_message(record.name, record.date, record.profit)
+      .then(res => {
+        setText(res)
+      })
+      .catch(err => {
+        console.log(err)
+        throw err
+      })
+  }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
   const names = Array.from(new Set(data.map(item => item.name)))
   const columns = [
@@ -104,7 +109,7 @@ export const ProfitTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} />
+      expandedRowRender: record => <Expand record={record} func={expandFunc} />
     }}
   />
 }
@@ -130,6 +135,7 @@ export const MonthProfitTable = () => {
               'cost': cost
             }
           }
+          return null
         })
         for (const month in summary) {
           let item = summary[month]
@@ -196,4 +202,98 @@ export const MonthProfitTable = () => {
   ]
 
   return <Table columns={columns} dataSource={data} tableLayout='fixed' />
+}
+
+export const CurrencyDayTable = () => {
+  const [data, setData] = React.useState([])
+  React.useEffect(() => {
+    get_currency_day_profit('', '')
+      .then(res => {
+        setData(res)
+      })
+      .catch(err => {
+        console.log(err)
+        throw err
+      })
+  }, [])
+  const expandFunc = (record, text, setText) => {
+    get_record(record.currency, record.day)
+      .then(res => {
+        const table_main = res.map(item => `| ${item.name} | ${item.time} | ${item.price} | ${item.vol} | ${item.direction==='buy' ? '买入' : '卖出'} |`).join('\n')
+        setText('### 明细\n| 姓名 | 时间 | 价格 | 成交额 | 方向 |\n'+
+          '| :----: | :----: | :----: | :----: | :----: |\n'+
+          table_main+'\n\n### 总计\n'+
+          '| 总买入 | 总卖出 | 总收益 |\n'+
+          '| :----: | :----: | :----: |\n'+
+          `| ${record.buy} | ${record.sell} | ${(record.sell-record.buy).toFixed(1)} |`
+        )
+      })
+      .catch(err => {
+        console.log(err)
+        throw err
+      })
+    
+  }
+  const [dropdownIcon, dropdownFunc] = filterDropdown()
+  const [dropdownIcon2, dropdownFunc2] = filterDropdown()
+  const currencies = Array.from(new Set(data.map(item => item.currency)))
+  const columns = [
+    {
+      title: '币种',
+      dataIndex: 'currency',
+      filters: currencies.map(item => ({
+        'text': item,
+        'value': item
+      })),
+      onFilter: (value, record) => record.name === value,
+    },
+    {
+      title: '日期',
+      width: 120,
+      dataIndex: 'day',
+      defaultSortOrder: 'descend',
+      sorter: (a, b) => a.day.localeCompare(b.day),
+      onFilter: (value, record) => record.day.indexOf(value) > -1,
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '收益率',
+      width: 110,
+      dataIndex: 'percent',
+      sorter: (a, b) => a.percent - b.percent,
+      render: text => `${text.toFixed(1)}%`,
+      onFilter: (value, record) => {
+        const [_str, sign, _num] = /([><=]{1,2})(-?\d{1,2}\.?\d*)%?/.exec(value)
+        const num = Number(_num)
+        if (_num === '' || isNaN(num)) {
+          return true
+        }
+        switch (sign) {
+          case '>':
+            return record.percent > num
+          case '<':
+            return record.percent < num
+          case '>=':
+            return record.percent >= num
+          case '<=':
+            return record.percent <= num
+          case '=':
+            return record.percent === num
+          default:
+            return true
+        }
+      },
+      filterDropdown: dropdownFunc2,
+      filterIcon: dropdownIcon2
+    }
+  ]
+
+  return <Table
+    columns={columns} dataSource={data} tableLayout='fixed'
+    expandable={{
+      columnWidth: 25,
+      expandedRowRender: record => <Expand record={record} func={expandFunc} />
+    }}
+    />
 }
