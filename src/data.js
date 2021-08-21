@@ -1,4 +1,6 @@
-const url = process.env.NODE_ENV === 'development' ? 'http://192.168.222.240:5008/' : 'http://server.cheerl.space:5000/'
+const url = process.env.NODE_ENV === 'development' ? 
+'http://192.168.222.240:5008/' : 
+'http://server.cheerl.space:5008/'
 
 const post = (postfix, postdata) => {
   return fetch(url + postfix, {
@@ -67,10 +69,16 @@ export const get_currency_day_profit = (currency, date) => {
   return post('currency_day', data)
 }
 
-export const get_record = (currency, date) => {
+export const get_record = (profit_id, currency, date) => {
   const data = {
+    'profit_id': profit_id,
     'date': date,
     'currency': currency
   }
   return post('record', data)
+}
+
+export const get_stat = () => {
+  const data = {}
+  return post('stat', data)
 }

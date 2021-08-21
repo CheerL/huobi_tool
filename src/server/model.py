@@ -240,6 +240,7 @@ def get_profit(name='', month=''):
         data = data.all()
         res = [{
             'key': index,
+            'profit_id': item.id,
             'name': item.name,
             'date': item.date_str.strftime('%Y-%m-%d'),
             'profit': item.profit,
@@ -290,27 +291,35 @@ def get_message(date, name, profit=0):
 
 def get_currency_day_profit(currency='', date=''):
     with get_session() as session:
-        currency_day_profit = Table('currency_his_day', Base.metadata, autoload=True, autoload_with=session.bind)
+        currency_day_profit = Table('currency_day', Base.metadata, autoload=True, autoload_with=session.bind)
         data = session.query(currency_day_profit)
         if currency:
             data = data.filter(currency_day_profit.c.currency == currency)
         if date:
-            data = data.filter(currency_day_profit.c.day == date)
+            data = data.filter(currency_day_profit.c.date == date)
         data = data.all()
         res = [{
             'key': index,
             'currency': item.currency,
-            'day': item.day,
-            'buy': round(item.buy, 1),
-            'sell': round(item.sell, 1),
-            'percent': round(item.profit * 100, 2),
+            'date': item.date,
+            'buy_tm': item.buy_tm,
+            'sell_tm': item.sell_tm,
+            'hold_tm': item.sell_tm - item.buy_tm,
+            'buy': item.buy,
+            'sell': item.sell,
+            'profit': item.sell-item.buy,
+            'percent': item.percent,
+            'type': 1 if item.high_profit else ( 2 if item.high_loss else 0)
+            # 0 for normal, 1 for high profit, 2 for high loss.
         } for index, item in enumerate(data)]
         return res
 
-def get_record(currency='', date=''):
+def get_record(profit_id='', currency='', date=''):
     with get_session() as session:
         record_human = Table('record_human', Base.metadata, autoload=True, autoload_with=session.bind)
         data = session.query(record_human)
+        if profit_id:
+            data = data.filter(record_human.c.profit_id == profit_id)
         if currency:
             data = data.filter(record_human.c.currency == currency)
         if date:
@@ -319,14 +328,37 @@ def get_record(currency='', date=''):
         res = [{
             'key': index,
             'name': item.name,
+            'currency': item.currency,
+            'date': item.date,
             'time': item.tm,
             'price': item.price,
+            'amount': item.amount,
             'vol': round(item.vol, 2),
             'direction': item.direction,
         } for index, item in enumerate(data)]
         return res
 
+def get_stat():
+    with get_session() as session:
+        stat = Table('currency_stat', Base.metadata, autoload=True, autoload_with=session.bind)
+        data = session.query(stat)
+        data = data.all()
+        res = [{
+            'key': index,
+            'currency': item.currency,
+            'buy_times': item.buy_times,
+            'profit_times': item.profit_times,
+            'high_profit_times': item.high_profit_times,
+            'high_loss_times': item.high_loss_times,
+            'total_profit': item.total_profit,
+            'total_percent': item.total_percent,
+            'profit_percent': item.profit_percent,
+            'high_profit_percent': item.high_profit_percent,
+            'high_loss_percent': item.high_loss_percent
+        } for index, item in enumerate(data)]
+        return res
+
 if __name__ == '__main__':
-    res = get_record('BHD', '2021-08-17')
+    res = get_stat()
     print(res)
 

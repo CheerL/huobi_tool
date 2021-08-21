@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from model import (
     get_trade_list, get_open_price, get_profit,
     get_message, get_month_profit, get_currency_day_profit,
-    get_record
+    get_record, get_stat
     )
 from flask_cors import CORS
 
@@ -49,7 +49,13 @@ def currency_day():
 @app.route('/record', methods=['POST'])
 def record():
     args = request.json
-    data = get_record(args['currency'], args['date'])
+    data = get_record(args['profit_id'], args['currency'], args['date'])
+    return jsonify(data)
+
+@app.route('/stat', methods=['POST'])
+def stat():
+    # args = request.json
+    data = get_stat()
     return jsonify(data)
 
 if __name__ == '__main__':

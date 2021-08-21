@@ -4,7 +4,7 @@ import marked from 'marked';
 import { Table, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import {
-  get_profit, get_message, get_month_profit,
+  get_profit, get_stat, get_month_profit,
   get_currency_day_profit, get_record
 } from './data'
 
@@ -44,6 +44,28 @@ const filterDropdown = () => {
   return [dropdownIcon, dropdownFunc]
 }
 
+const compareFilterFunc = (key) => (value, record) => {
+  const [_str, sign, _num] = /([><=]{1,2})(-?\d{1,2}\.?\d*)%?/.exec(value)
+  const num = Number(_num)
+  if (_num === '' || isNaN(num)) {
+    return true
+  }
+  switch (sign) {
+    case '>':
+      return record[key] > num
+    case '<':
+      return record[key] < num
+    case '>=':
+      return record[key] >= num
+    case '<=':
+      return record[key] <= num
+    case '=':
+      return record[key] === num
+    default:
+      return true
+  }
+}
+
 export const ProfitTable = () => {
   const [data, setData] = React.useState([])
   React.useEffect(() => {
@@ -57,14 +79,37 @@ export const ProfitTable = () => {
       })
   }, [])
   const expandFunc = (record, text, setText) => {
-    get_message(record.name, record.date, record.profit)
+    get_record(record.profit_id, '', '')
       .then(res => {
-        setText(res)
+        const buy_main = res.filter(item => item.direction === 'buy')
+        .map(item => {
+          return `| ${item.currency} `+
+          `| ${item.time.slice(4)} `+
+          `| ${item.price.toPrecision(4)} `+
+          `| ${item.amount} `+
+          `| ${item.vol.toFixed(1)} |`
+        }).join('\n')
+        const sell_main = res.filter(item => item.direction === 'sell')
+        .map(item => {
+          return `| ${item.currency} `+
+          `| ${item.time.slice(4)} `+
+          `| ${item.price.toPrecision(4)} `+
+          `| ${item.amount} `+
+          `| ${item.vol.toFixed(1)} |`
+        }).join('\n')
+        setText('### 买入记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n'+
+          '| :----: | :----: | :----: | :----: | :----: |\n'+
+          buy_main+
+          '\n\n\n### 卖出记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n'+
+          '| :----: | :----: | :----: | :----: | :----: |\n'+
+          sell_main
+        )
       })
       .catch(err => {
         console.log(err)
         throw err
       })
+    
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
   const names = Array.from(new Set(data.map(item => item.name)))
@@ -80,7 +125,7 @@ export const ProfitTable = () => {
     },
     {
       title: '日期',
-      width: 105,
+      width: 103,
       dataIndex: 'date',
       defaultSortOrder: 'descend',
       sorter: (a, b) => a.date.localeCompare(b.date),
@@ -217,26 +262,27 @@ export const CurrencyDayTable = () => {
       })
   }, [])
   const expandFunc = (record, text, setText) => {
-    get_record(record.currency, record.day)
+    get_record('', record.currency, record.date)
       .then(res => {
-        const table_main = res.map(item => `| ${item.name.indexOf('小号') > -1 ? '夜空中...欣(小号)' : item.name} | ${item.time.slice(4)} | ${item.price.toPrecision(4)} | ${item.vol.toFixed(1)} | ${item.direction==='buy' ? '买' : '卖'} |`).join('\n')
+        const table_main = res.map(item => (
+          `| ${item.name.indexOf('小号') > -1 ? '夜空中...欣(小号)' : item.name} `+
+          `| ${item.time.slice(4)} `+
+          `| ${item.price.toPrecision(4)} `+
+          `| ${item.vol.toFixed(1)} `+
+          `| ${item.direction==='buy' ? '买' : '卖'} |`)
+        ).join('\n')
         setText('### 明细\n| 姓名 | 时间 | 价格 | 成交额 | 方向 |\n'+
           '| :----: | :----: | :----: | :----: | :----: |\n'+
-          table_main+'\n\n### 总计\n'+
-          '| 总买入 | 总卖出 | 总收益 |\n'+
-          '| :----: | :----: | :----: |\n'+
-          `| ${record.buy} | ${record.sell} | ${(record.sell-record.buy).toFixed(1)} |`
+          table_main
         )
       })
       .catch(err => {
         console.log(err)
         throw err
       })
-    
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
-  const [dropdownIcon2, dropdownFunc2] = filterDropdown()
-  const currencies = Array.from(new Set(data.map(item => item.currency)))
+  const currencies = Array.from(new Set(data.map(item => item.currency))).sort()
   const columns = [
     {
       title: '币种',
@@ -245,55 +291,245 @@ export const CurrencyDayTable = () => {
         'text': item,
         'value': item
       })),
-      onFilter: (value, record) => record.name === value,
+      onFilter: (value, record) => record.currency === value,
+      fixed: 'left'
     },
     {
       title: '日期',
-      width: 120,
-      dataIndex: 'day',
+      width: 103,
+      dataIndex: 'date',
       defaultSortOrder: 'descend',
-      sorter: (a, b) => a.day.localeCompare(b.day),
-      onFilter: (value, record) => record.day.indexOf(value) > -1,
+      sorter: (a, b) => a.date.localeCompare(b.date),
+      onFilter: (value, record) => record.date.indexOf(value) > -1,
       filterDropdown: dropdownFunc,
       filterIcon: dropdownIcon
     },
     {
-      title: '收益率',
-      width: 110,
-      dataIndex: 'percent',
-      sorter: (a, b) => a.percent - b.percent,
-      render: text => `${text.toFixed(1)}%`,
-      onFilter: (value, record) => {
-        const [_str, sign, _num] = /([><=]{1,2})(-?\d{1,2}\.?\d*)%?/.exec(value)
-        const num = Number(_num)
-        if (_num === '' || isNaN(num)) {
-          return true
-        }
-        switch (sign) {
-          case '>':
-            return record.percent > num
-          case '<':
-            return record.percent < num
-          case '>=':
-            return record.percent >= num
-          case '<=':
-            return record.percent <= num
-          case '=':
-            return record.percent === num
-          default:
-            return true
+      title: '状态',
+      width: 76,
+      dataIndex: 'type',
+      render: text => {
+        switch (text) {
+          case 1: return <span className='type-high-profit'>止盈</span>
+          case 2: return <span className='type-high-loss'>止损</span>
+          default: return '正常'
         }
       },
-      filterDropdown: dropdownFunc2,
-      filterIcon: dropdownIcon2
-    }
+      filters: [
+        { 'text': '正常', 'value': 0 },
+        { 'text': '止盈', 'value': 1 },
+        { 'text': '止损', 'value': 2 }
+      ],
+      onFilter: (value, record) => record.type === value
+    },
+    {
+      title: '收益率',
+      width: 102,
+      dataIndex: 'percent',
+      sorter: (a, b) => a.percent - b.percent,
+      render: text => `${text.toFixed(2)}%`,
+      onFilter: compareFilterFunc('percent'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '买入额',
+      width: 90,
+      dataIndex: 'buy',
+      render: text => `${text.toFixed(1)}`
+    },
+    {
+      title: '卖出额',
+      width: 90,
+      dataIndex: 'sell',
+      render: text => `${text.toFixed(1)}`
+    },
+    {
+      title: '收益',
+      width: 90,
+      dataIndex: 'profit',
+      sorter: (a, b) => a.profit - b.profit,
+      render: text => `${text.toFixed(2)}`
+    },
+    {
+      title: '买入时间',
+      width: 100,
+      dataIndex: 'buy_tm',
+      render: text => `00:${text<10 ? '0': ''}${text.toFixed(3)}`
+    },
+    {
+      title: '卖出时间',
+      width: 100,
+      dataIndex: 'sell_tm',
+      render: text => `00:${text<10 ? '0': ''}${text.toFixed(3)}`
+    },
+    {
+      title: '持有时长',
+      width: 120,
+      dataIndex: 'hold_tm',
+      render: text => `${text.toFixed(3)}`,
+      sorter: (a, b) => a.percent - b.percent,
+      onFilter: compareFilterFunc('hold_tm'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
   ]
 
   return <Table
-    columns={columns} dataSource={data} tableLayout='fixed'
+    columns={columns} dataSource={data} tableLayout='fixed' scroll={{x: 980}}
     expandable={{
       columnWidth: 25,
       expandedRowRender: record => <Expand record={record} func={expandFunc} />
     }}
-    />
+  />
+}
+
+export const CurrencyStatTable = () => {
+  const [data, setData] = React.useState([])
+  React.useEffect(() => {
+    get_stat()
+      .then(res => {
+        setData(res)
+      })
+      .catch(err => {
+        console.log(err)
+        throw err
+      })
+  }, [])
+
+  const expandFunc = (record, text, setText) => {
+    get_currency_day_profit(record.currency, '')
+      .then(res => {
+        const table_main = res.map(item => (
+          `| ${item.currency} `+
+          `| ${item.date} `+
+          `|${item.type === 0 ? 
+              '正常' :
+              (item.type === 1 ?
+                '<span class="type-high-profit">止盈</span>' :
+                '<span class="type-high-loss">止损</span>'
+            )} `+
+          `| ${item.percent.toFixed(2)}% `+
+          `| ${item.buy.toFixed(1)} `+
+          `| ${item.sell.toFixed(1)} `+
+          `| ${(item.sell-item.buy).toFixed(1)} `+
+          `| 00:${item.buy_tm < 10 ? '0': ''}${item.buy_tm.toFixed(3)} `+
+          `| 00:${item.sell_tm < 10 ? '0': ''}${item.sell_tm.toFixed(3)} `+
+          `| ${(item.sell_tm-item.buy_tm).toFixed(3)} |`)
+        ).join('\n')
+        setText('### 明细\n| 币种 | 日期 | 状态 | 收益率 | 买入额 | 卖出额 | 收益 | 买入时间 | 卖出时间 | 持有时长 | \n'+
+          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----:| :----: | :----: |\n'+
+          table_main)
+      })
+      .catch(err => {
+        console.log(err)
+        throw err
+      })
+  }
+  const [dropdownIcon, dropdownFunc] = filterDropdown()
+  const currencies = Array.from(new Set(data.map(item => item.currency))).sort()
+  const columns = [
+    {
+      title: '币种',
+      dataIndex: 'currency',
+      filters: currencies.map(item => ({
+        'text': item,
+        'value': item
+      })),
+      onFilter: (value, record) => record.currency === value,
+      // fixed: 'left'
+    },
+    {
+      title: '买入次数',
+      width: 95,
+      dataIndex: 'buy_times',
+      sorter: (a, b) => a.buy_times > b.buy_times,
+      onFilter: compareFilterFunc('buy_times'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '盈利次数',
+      width: 95,
+      dataIndex: 'profit_times',
+      sorter: (a, b) => a.profit_times > b.profit_times,
+      onFilter: compareFilterFunc('profit_times'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '止盈次数',
+      width: 95,
+      dataIndex: 'high_profit_times',
+      sorter: (a, b) => a.high_profit_times > b.high_profit_times,
+      onFilter: compareFilterFunc('high_profit_times'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '止损次数',
+      width: 95,
+      dataIndex: 'high_loss_times',
+      sorter: (a, b) => a.high_loss_times > b.high_loss_times,
+      onFilter: compareFilterFunc('high_loss_times'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '总收益',
+      dataIndex: 'total_profit',
+      width: 80,
+      sorter: (a, b) => a.total_profit - b.total_profit,
+      render: text => `${text.toFixed(1)}`
+    },
+    {
+      title: '总收益率',
+      width: 90,
+      dataIndex: 'total_percent',
+      sorter: (a, b) => a.total_percent - b.total_percent,
+      render: text => `${text.toFixed(1)}%`,
+      onFilter: compareFilterFunc('total_percent'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '盈利率',
+      width: 90,
+      dataIndex: 'profit_percent',
+      sorter: (a, b) => a.profit_percent - b.profit_percent,
+      render: text => `${text.toFixed(1)}%`,
+      onFilter: compareFilterFunc('profit_percent'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '止盈率',
+      width: 90,
+      dataIndex: 'high_profit_percent',
+      sorter: (a, b) => a.high_profit_percent - b.high_profit_percent,
+      render: text => `${text.toFixed(1)}%`,
+      onFilter: compareFilterFunc('high_profit_percent'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '止损率',
+      width: 90,
+      dataIndex: 'high_loss_percent',
+      sorter: (a, b) => a.high_loss_percent - b.high_loss_percent,
+      render: text => `${text.toFixed(1)}%`,
+      onFilter: compareFilterFunc('high_loss_percent'),
+      filterDropdown: dropdownFunc,
+      filterIcon: dropdownIcon
+    }
+  ]
+
+  return <Table 
+    columns={columns} dataSource={data}
+    tableLayout='fixed' scroll={{x: 930}}
+    expandable={{
+      columnWidth: 25,
+      expandedRowRender: record => <Expand record={record} func={expandFunc} />
+    }}
+  />
 }

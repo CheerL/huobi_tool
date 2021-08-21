@@ -34,3 +34,11 @@ h3#买入记录, h3#卖出记录, h3#明细, h3#总计 {
 .ant-table-cell th {
   font-weight: bolder
 }
+
+span.type-high-profit {
+  color: #ff4d4f
+}
+
+span.type-high-loss {
+  color: #58cb56
+}
