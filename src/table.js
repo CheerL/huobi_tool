@@ -1,6 +1,12 @@
 import React from 'react'
 import ReactHtmlParser from 'react-html-parser';
 import marked from 'marked';
+import { Toast } from 'antd-mobile'
+// import 'antd/dist/antd.css';
+// import 'antd/es/table/style/index.css'
+// import 'antd/es/button/style/index.css'
+// import 'antd/es/input/style/index.css'
+// import 'antd/es/space/style/index.css'
 import { Table, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import {
@@ -45,25 +51,32 @@ const filterDropdown = () => {
 }
 
 const compareFilterFunc = (key) => (value, record) => {
-  const [_str, sign, _num] = /([><=]{1,2})(-?\d{1,2}\.?\d*)%?/.exec(value)
-  const num = Number(_num)
-  if (_num === '' || isNaN(num)) {
+  try {
+    const [_str, sign, _num] = /([><=]{0,2})(-?\d{0,2}\.?\d*)/.exec(value)
+    const num = Number(_num)
+    if (_num === '' || isNaN(num)) {
+      Toast.fail('请输入 >、>=、<、<=、= 加上数字, 如 >10')
+      return true
+    }
+    switch (sign) {
+      case '>':
+        return record[key] > num
+      case '<':
+        return record[key] < num
+      case '>=':
+        return record[key] >= num
+      case '<=':
+        return record[key] <= num
+      case '=':
+        return record[key] === num
+      default:
+        return record[key] === num
+    }
+  } catch {
+    Toast.fail('请输入 >、>=、<、<=、= 加上数字, 如 >10')
     return true
   }
-  switch (sign) {
-    case '>':
-      return record[key] > num
-    case '<':
-      return record[key] < num
-    case '>=':
-      return record[key] >= num
-    case '<=':
-      return record[key] <= num
-    case '=':
-      return record[key] === num
-    default:
-      return true
-  }
+  
 }
 
 export const ProfitTable = () => {

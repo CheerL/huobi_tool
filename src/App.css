@@ -42,3 +42,11 @@ span.type-high-profit {
 span.type-high-loss {
   color: #58cb56
 }
+
+.am-button-primary:hover {
+  color: #fff
+}
+
+.am-button-primary.am-button-disabled:hover {
+  color: rgba(255, 255, 255, 0.6);
+}

@@ -8,9 +8,13 @@ export const PriceChart = () => {
   const [start, setStart] = React.useState('')
   const [end, setEnd] = React.useState('')
   const [symbol, setSymbol] = React.useState('')
-  const [data, setData] = React.useState([{ ts: 0, acc_vol: 0, vol: 0, price: 0, percent: 0 }])
+  const [data, setData] = React.useState([
+    { ts: 0, acc_vol: 0, vol: 0, price: 0, percent: 0 }
+  ])
   const [open, setOpen] = React.useState(0)
   const [base, setBase] = React.useState(0)
+  const [baseLoading, setBaseLoading] = React.useState(false)
+  const [createLoading, setCreateLoading] = React.useState(false)
 
   const setDataWithBase = (base, old_data) => {
     const new_data = old_data.map(item => ({ ...item, percent: (item.price / base - 1) * 100 }))
@@ -23,6 +27,7 @@ export const PriceChart = () => {
     const start_time = start_ts - start_ts % 60000
     const end_ts = end.getTime()
     const end_time = end_ts - end_ts % 60000
+    setCreateLoading(true)
     get_price_data(symbol, start_time, end_time)
       .then(res => {
         setDataWithBase(res[0].price, res)
@@ -31,11 +36,15 @@ export const PriceChart = () => {
         console.log(err)
         throw err
       })
+      .finally(() => {
+        setCreateLoading(false)
+      })
   }
 
   const updateBase = () => {
     const start_ts = start.getTime()
     const start_time = start_ts - start_ts % 60000
+    setBaseLoading(true)
     get_open_price(symbol, start_time)
       .then(res => {
         setDataWithBase(res.open, data)
@@ -44,6 +53,9 @@ export const PriceChart = () => {
       .catch(err => {
         console.log(err)
         throw (err)
+      })
+      .finally(() => {
+        setBaseLoading(false)
       })
   }
 
@@ -64,13 +76,13 @@ export const PriceChart = () => {
         </InputItem>
         <WingBlank>
         <Button
-          type='primary' onClick={updateDate}
+          type='primary' onClick={updateDate} loading={createLoading}
           disabled={ symbol === '' || start === '' || end === '' }
         >生成图表
         </Button>
         <WhiteSpace />
         <Button
-          type='primary' onClick={updateBase}
+          type='primary' onClick={updateBase} loading={baseLoading}
           disabled={ symbol === '' || start === '' || data.length === 1 || open === Number(base) }
         >获取开盘价
         </Button>
