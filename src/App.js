@@ -37,15 +37,15 @@ function App() {
 const Index = () => {
   const history = useHistory()
   return <WingBlank>
-    <WhiteSpace />
+    <WhiteSpace size='xl' />
     <Button onClick={() => history.push('/month_profit')}>月收益表</Button>
-    <WhiteSpace />
+    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/profit')}>收益表</Button>
-    <WhiteSpace />
+    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/currency_day')}>币种单日收益表</Button>
-    <WhiteSpace />
+    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/stat')}>币种统计表</Button>
-    <WhiteSpace />
+    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/price')}>价格图</Button>
   </WingBlank>
 }

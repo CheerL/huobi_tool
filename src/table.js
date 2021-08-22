@@ -2,11 +2,6 @@ import React from 'react'
 import ReactHtmlParser from 'react-html-parser';
 import marked from 'marked';
 import { Toast } from 'antd-mobile'
-// import 'antd/dist/antd.css';
-// import 'antd/es/table/style/index.css'
-// import 'antd/es/button/style/index.css'
-// import 'antd/es/input/style/index.css'
-// import 'antd/es/space/style/index.css'
 import { Table, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import {
@@ -17,7 +12,7 @@ import {
 const Expand = ({ record, func }) => {
   const [text, setText] = React.useState('加载中')
   React.useEffect(() => {
-    func(record, text, setText)
+    func(record, setText)
   }, [record, func])
   const outHtml = marked(text)
   return ReactHtmlParser(outHtml)
@@ -52,7 +47,7 @@ const filterDropdown = () => {
 
 const compareFilterFunc = (key) => (value, record) => {
   try {
-    const [_str, sign, _num] = /([><=]{0,2})(-?\d{0,2}\.?\d*)/.exec(value)
+    const [, sign, _num] = /([><=]{0,2})(-?\d{0,2}\.?\d*)/.exec(value)
     const num = Number(_num)
     if (_num === '' || isNaN(num)) {
       Toast.fail('请输入 >、>=、<、<=、= 加上数字, 如 >10')
@@ -76,7 +71,7 @@ const compareFilterFunc = (key) => (value, record) => {
     Toast.fail('请输入 >、>=、<、<=、= 加上数字, 如 >10')
     return true
   }
-  
+
 }
 
 export const ProfitTable = () => {
@@ -91,30 +86,30 @@ export const ProfitTable = () => {
         throw err
       })
   }, [])
-  const expandFunc = (record, text, setText) => {
+  const expandFunc = (record, setText) => {
     get_record(record.profit_id, '', '')
       .then(res => {
         const buy_main = res.filter(item => item.direction === 'buy')
-        .map(item => {
-          return `| ${item.currency} `+
-          `| ${item.time.slice(4)} `+
-          `| ${item.price.toPrecision(4)} `+
-          `| ${item.amount} `+
-          `| ${item.vol.toFixed(1)} |`
-        }).join('\n')
+          .map(item => {
+            return `| ${item.currency} ` +
+              `| ${item.time.slice(4)} ` +
+              `| ${item.price.toPrecision(4)} ` +
+              `| ${item.amount} ` +
+              `| ${item.vol.toFixed(1)} |`
+          }).join('\n')
         const sell_main = res.filter(item => item.direction === 'sell')
-        .map(item => {
-          return `| ${item.currency} `+
-          `| ${item.time.slice(4)} `+
-          `| ${item.price.toPrecision(4)} `+
-          `| ${item.amount} `+
-          `| ${item.vol.toFixed(1)} |`
-        }).join('\n')
-        setText('### 买入记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n'+
-          '| :----: | :----: | :----: | :----: | :----: |\n'+
-          buy_main+
-          '\n\n\n### 卖出记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n'+
-          '| :----: | :----: | :----: | :----: | :----: |\n'+
+          .map(item => {
+            return `| ${item.currency} ` +
+              `| ${item.time.slice(4)} ` +
+              `| ${item.price.toPrecision(4)} ` +
+              `| ${item.amount} ` +
+              `| ${item.vol.toFixed(1)} |`
+          }).join('\n')
+        setText('### 买入记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n' +
+          '| :----: | :----: | :----: | :----: | :----: |\n' +
+          buy_main +
+          '\n\n\n### 卖出记录\n| 币种 | 时间 | 价格 | 成交量 | 成交额 |\n' +
+          '| :----: | :----: | :----: | :----: | :----: |\n' +
           sell_main
         )
       })
@@ -122,7 +117,7 @@ export const ProfitTable = () => {
         console.log(err)
         throw err
       })
-    
+
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
   const names = Array.from(new Set(data.map(item => item.name)))
@@ -274,18 +269,18 @@ export const CurrencyDayTable = () => {
         throw err
       })
   }, [])
-  const expandFunc = (record, text, setText) => {
+  const expandFunc = (record, setText) => {
     get_record('', record.currency, record.date)
       .then(res => {
         const table_main = res.map(item => (
-          `| ${item.name.indexOf('小号') > -1 ? '夜空中...欣(小号)' : item.name} `+
-          `| ${item.time.slice(4)} `+
-          `| ${item.price.toPrecision(4)} `+
-          `| ${item.vol.toFixed(1)} `+
-          `| ${item.direction==='buy' ? '买' : '卖'} |`)
+          `| ${item.name.indexOf('小号') > -1 ? '夜空中...欣(小号)' : item.name} ` +
+          `| ${item.time.slice(4)} ` +
+          `| ${item.price.toPrecision(4)} ` +
+          `| ${item.vol.toFixed(1)} ` +
+          `| ${item.direction === 'buy' ? '买' : '卖'} |`)
         ).join('\n')
-        setText('### 明细\n| 姓名 | 时间 | 价格 | 成交额 | 方向 |\n'+
-          '| :----: | :----: | :----: | :----: | :----: |\n'+
+        setText('### 明细\n| 姓名 | 时间 | 价格 | 成交额 | 方向 |\n' +
+          '| :----: | :----: | :----: | :----: | :----: |\n' +
           table_main
         )
       })
@@ -368,13 +363,13 @@ export const CurrencyDayTable = () => {
       title: '买入时间',
       width: 100,
       dataIndex: 'buy_tm',
-      render: text => `00:${text<10 ? '0': ''}${text.toFixed(3)}`
+      render: text => `00:${text < 10 ? '0' : ''}${text.toFixed(3)}`
     },
     {
       title: '卖出时间',
       width: 100,
       dataIndex: 'sell_tm',
-      render: text => `00:${text<10 ? '0': ''}${text.toFixed(3)}`
+      render: text => `00:${text < 10 ? '0' : ''}${text.toFixed(3)}`
     },
     {
       title: '持有时长',
@@ -389,7 +384,7 @@ export const CurrencyDayTable = () => {
   ]
 
   return <Table
-    columns={columns} dataSource={data} tableLayout='fixed' scroll={{x: 980}}
+    columns={columns} dataSource={data} tableLayout='fixed' scroll={{ x: 980 }}
     expandable={{
       columnWidth: 25,
       expandedRowRender: record => <Expand record={record} func={expandFunc} />
@@ -410,28 +405,28 @@ export const CurrencyStatTable = () => {
       })
   }, [])
 
-  const expandFunc = (record, text, setText) => {
+  const expandFunc = (record, setText) => {
     get_currency_day_profit(record.currency, '')
       .then(res => {
         const table_main = res.map(item => (
-          `| ${item.currency} `+
-          `| ${item.date} `+
-          `|${item.type === 0 ? 
-              '正常' :
-              (item.type === 1 ?
-                '<span class="type-high-profit">止盈</span>' :
-                '<span class="type-high-loss">止损</span>'
-            )} `+
-          `| ${item.percent.toFixed(2)}% `+
-          `| ${item.buy.toFixed(1)} `+
-          `| ${item.sell.toFixed(1)} `+
-          `| ${(item.sell-item.buy).toFixed(1)} `+
-          `| 00:${item.buy_tm < 10 ? '0': ''}${item.buy_tm.toFixed(3)} `+
-          `| 00:${item.sell_tm < 10 ? '0': ''}${item.sell_tm.toFixed(3)} `+
-          `| ${(item.sell_tm-item.buy_tm).toFixed(3)} |`)
+          `| ${item.currency} ` +
+          `| ${item.date} ` +
+          `|${item.type === 0 ?
+            '正常' :
+            (item.type === 1 ?
+              '<span class="type-high-profit">止盈</span>' :
+              '<span class="type-high-loss">止损</span>'
+            )} ` +
+          `| ${item.percent.toFixed(2)}% ` +
+          `| ${item.buy.toFixed(1)} ` +
+          `| ${item.sell.toFixed(1)} ` +
+          `| ${(item.sell - item.buy).toFixed(1)} ` +
+          `| 00:${item.buy_tm < 10 ? '0' : ''}${item.buy_tm.toFixed(3)} ` +
+          `| 00:${item.sell_tm < 10 ? '0' : ''}${item.sell_tm.toFixed(3)} ` +
+          `| ${(item.sell_tm - item.buy_tm).toFixed(3)} |`)
         ).join('\n')
-        setText('### 明细\n| 币种 | 日期 | 状态 | 收益率 | 买入额 | 卖出额 | 收益 | 买入时间 | 卖出时间 | 持有时长 | \n'+
-          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----:| :----: | :----: |\n'+
+        setText('### 明细\n| 币种 | 日期 | 状态 | 收益率 | 买入额 | 卖出额 | 收益 | 买入时间 | 卖出时间 | 持有时长 | \n' +
+          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----:| :----: | :----: |\n' +
           table_main)
       })
       .catch(err => {
@@ -537,9 +532,9 @@ export const CurrencyStatTable = () => {
     }
   ]
 
-  return <Table 
+  return <Table
     columns={columns} dataSource={data}
-    tableLayout='fixed' scroll={{x: 930}}
+    tableLayout='fixed' scroll={{ x: 930 }}
     expandable={{
       columnWidth: 25,
       expandedRowRender: record => <Expand record={record} func={expandFunc} />
