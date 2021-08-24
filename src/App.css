@@ -50,3 +50,26 @@ span.type-high-loss {
 .am-button-primary.am-button-disabled:hover {
   color: rgba(255, 255, 255, 0.6);
 }
+
+.g2-tooltip-list-item {
+  text-align: left;
+}
+
+.index-space-box {
+  width: 100%;
+  padding: 15px;
+}
+
+.am-button {
+  border-radius: 10px;
+}
+
+.App > .ant-table-filter-column {
+  width: 20px;
+  height: 20px;
+  margin: 10px 0 0 0px
+}
+
+body::-webkit-scrollbar {
+  width: 0 !important
+}

@@ -13,7 +13,6 @@ CORS(app)
 def price():
     args = request.json
     trade_list = get_trade_list(args['symbol'], args['start'], args['end'])
-    print(args, len(trade_list))
     return jsonify(trade_list)
 
 @app.route('/open', methods=['POST'])

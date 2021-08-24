@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactHtmlParser from 'react-html-parser';
+import HtmlReactParser from 'html-react-parser';
 import marked from 'marked';
 import { Toast } from 'antd-mobile'
 import { Table, Button, Space, Input } from 'antd';
@@ -15,7 +15,7 @@ const Expand = ({ record, func }) => {
     func(record, setText)
   }, [record, func])
   const outHtml = marked(text)
-  return ReactHtmlParser(outHtml)
+  return HtmlReactParser(outHtml)
 }
 
 const filterDropdown = () => {
@@ -83,7 +83,7 @@ export const ProfitTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }, [])
   const expandFunc = (record, setText) => {
@@ -115,7 +115,7 @@ export const ProfitTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
 
   }
@@ -205,7 +205,7 @@ export const MonthProfitTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }, [])
 
@@ -266,7 +266,7 @@ export const CurrencyDayTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }, [])
   const expandFunc = (record, setText) => {
@@ -286,7 +286,7 @@ export const CurrencyDayTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
@@ -401,7 +401,7 @@ export const CurrencyStatTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }, [])
 
@@ -431,7 +431,7 @@ export const CurrencyStatTable = () => {
       })
       .catch(err => {
         console.log(err)
-        throw err
+        // throw err
       })
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()

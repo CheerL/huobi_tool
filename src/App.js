@@ -1,8 +1,10 @@
 import './App.css';
+import React from 'react'
 import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
 import { PriceChart } from './chart';
 import { ProfitTable, MonthProfitTable, CurrencyDayTable, CurrencyStatTable } from './table'
-import { Button, WingBlank, WhiteSpace } from 'antd-mobile'
+import { Space } from 'antd'
+import { Button } from 'antd-mobile'
 
 function App() {
   return (
@@ -36,18 +38,13 @@ function App() {
 
 const Index = () => {
   const history = useHistory()
-  return <WingBlank>
-    <WhiteSpace size='xl' />
+  return <Space direction="vertical" className='index-space-box' size={15}>
     <Button onClick={() => history.push('/month_profit')}>月收益表</Button>
-    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/profit')}>收益表</Button>
-    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/currency_day')}>币种单日收益表</Button>
-    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/stat')}>币种统计表</Button>
-    <WhiteSpace size='lg' />
     <Button onClick={() => history.push('/price')}>价格图</Button>
-  </WingBlank>
+  </Space>
 }
 
 export default App;

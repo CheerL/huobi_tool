@@ -8,7 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(ROOT, 'config.ini')
-print(CONFIG_PATH)
 
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
@@ -215,7 +214,7 @@ def get_trade_list(symbol, start, end):
                 'acc_vol': acc_vol + sum_vol
             })
 
-        return trade_list
+        return trade_list if len(trade_list) > 1 else []
 
 def get_open_price(symbol, start):
     with get_session() as session:
