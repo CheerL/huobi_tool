@@ -9,49 +9,49 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/', methods=['POST'])
+@app.route('/api/', methods=['POST'])
 def price():
     args = request.json
     trade_list = get_trade_list(args['symbol'], args['start'], args['end'])
     return jsonify(trade_list)
 
-@app.route('/open', methods=['POST'])
+@app.route('/api/open', methods=['POST'])
 def open():
     args = request.json
     data = get_open_price(args['symbol'], args['start'])
     return jsonify(data)
 
-@app.route('/profit', methods=['POST'])
+@app.route('/api/profit', methods=['POST'])
 def profit():
     args = request.json
     data = get_profit(args['name'], args['month'])
     return jsonify(data)
 
-@app.route('/month_profit', methods=['POST'])
+@app.route('/api/month_profit', methods=['POST'])
 def month_profit():
     args = request.json
     data = get_month_profit(args['name'], args['month'])
     return jsonify(data)
 
-@app.route('/message', methods=['POST'])
+@app.route('/api/message', methods=['POST'])
 def message():
     args = request.json
     data = get_message(args['date'], args['name'], args['profit'])
     return jsonify(data)
 
-@app.route('/currency_day', methods=['POST'])
+@app.route('/api/currency_day', methods=['POST'])
 def currency_day():
     args = request.json
     data = get_currency_day_profit(args['currency'], args['date'])
     return jsonify(data)
 
-@app.route('/record', methods=['POST'])
+@app.route('/api/record', methods=['POST'])
 def record():
     args = request.json
     data = get_record(args['profit_id'], args['currency'], args['date'])
     return jsonify(data)
 
-@app.route('/stat', methods=['POST'])
+@app.route('/api/stat', methods=['POST'])
 def stat():
     # args = request.json
     data = get_stat()

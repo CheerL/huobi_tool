@@ -1,6 +1,6 @@
 const url = process.env.NODE_ENV === 'development' ? 
-'http://192.168.222.240:5008/' : 
-'http://server.cheerl.space:5008/'
+'http://192.168.222.240:5008/api/' : 
+'https://server.cheerl.space/api/'
 
 const post = (postfix, postdata) => {
   return fetch(url + postfix, {
