@@ -27,7 +27,10 @@
   z-index: 100;
 }
 
-h3#买入记录, h3#卖出记录, h3#明细, h3#总计 {
+h3#买入记录,
+h3#卖出记录,
+h3#明细,
+h3#总计 {
   color: #1890ff;
 }
 
@@ -51,8 +54,69 @@ span.type-high-loss {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.g2-tooltip {
+  top: -30px !important;
+  left: unset !important;
+  display: flex;
+  font-size: 12px !important;
+  padding-right: 0px !important;
+  padding-left: 0px !important;
+  align-items: center;
+  width: 360px;
+  right: 0px;
+}
+
+.g2-tooltip-list {
+  display: flex;
+}
+
+.g2-tooltip-title {
+  font-weight: bold;
+  margin: 6px 2px 6px 4px !important;
+}
+
 .g2-tooltip-list-item {
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-content: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin: 6px 0 !important;
+}
+
+.g2-tooltip-list-item[data-index=涨幅] {
+  width: 62px;
+}
+
+.g2-tooltip-list-item[data-index=单笔成交额] {
+  width: 75px;
+}
+
+.g2-tooltip-list-item[data-index=累计成交额] {
+  width: 75px;
+}
+
+.g2-tooltip-list-item[data-index=价格] {
+  width: 67px;
+}
+
+.g2-tooltip-name {
+  text-align: center;
+}
+
+.g2-tooltip-value {
+  margin: 0 0 0 14px !important;
+  text-align: center;
+}
+
+.g2-tooltip-marker {
+  margin: 0 2px 0 2px !important;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
 
 .index-space-box {
@@ -64,12 +128,43 @@ span.type-high-loss {
   border-radius: 10px;
 }
 
-.App > .ant-table-filter-column {
+.App>.ant-table-filter-column {
   width: 20px;
   height: 20px;
-  margin: 10px 0 0 0px
+  margin: 0px 0 0 -2px;
+  padding-top: 10px;
 }
 
 body::-webkit-scrollbar {
   width: 0 !important
+}
+
+div.bizcharts {
+  padding-top: 10px;
+}
+
+div.bizcharts>div {
+  margin-bottom: -40px;
+}
+
+.bizcharts .ant-slider {
+  width: 90%;
+  margin-left: 5%;
+  /* margin-right: 2%; */
+  margin-bottom: 0;
+}
+
+.bizcharts .ant-slider-handle {
+  height: 24px;
+  width: 24px;
+}
+
+.bizcharts .ant-slider-track {
+  margin-top: 3px;
+  height: 8px;
+}
+
+.bizcharts .ant-slider-rail {
+  margin-top: 3px;
+  height: 8px;
 }

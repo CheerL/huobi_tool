@@ -1,6 +1,6 @@
-const url = process.env.NODE_ENV === 'development' ? 
-'http://192.168.222.240:5008/api/' : 
-'https://server.cheerl.space/api/'
+const url = process.env.NODE_ENV === 'development' ?
+  'http://192.168.222.240:5008/api/' :
+  'https://server.cheerl.space/api/'
 
 const post = (postfix, postdata) => {
   return fetch(url + postfix, {
@@ -11,12 +11,12 @@ const post = (postfix, postdata) => {
     },
     body: JSON.stringify(postdata)
   }).then(res => {
+    // const data = res.json()
     const data = res.json()
     return data
+  }).catch(err => {
+    throw err
   })
-    .catch(err => {
-      throw err
-    })
 }
 
 export const get_price_data = (symbol, start, end) => {
