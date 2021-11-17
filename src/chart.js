@@ -248,7 +248,7 @@ const PriceChartView = React.memo(({ data, base, record, filterKeys }) => {
   }, [])
 
   return <Chart
-    appendPadding={[10, 5, 5, 5]} //上 右 下 左
+    appendPadding={[5, 5, 5, 5]} //上 右 下 左
     autoFit
     height={chartHeight}
     data={data}

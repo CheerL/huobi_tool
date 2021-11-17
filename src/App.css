@@ -64,10 +64,13 @@ span.type-high-loss {
   align-items: center;
   width: 360px;
   right: 0px;
+  background-color: unset !important;
+  box-shadow: unset !important;
 }
 
 .g2-tooltip-list {
   display: flex;
+  
 }
 
 .g2-tooltip-title {

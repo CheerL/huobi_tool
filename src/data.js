@@ -82,3 +82,37 @@ export const get_stat = () => {
   const data = {}
   return post('stat', data)
 }
+
+export const get_bottom_day_profit = (name, date) => {
+  const data = {
+    'name': name,
+    'date': date
+  }
+  return post('bottom/day_profit', data)
+}
+
+export const get_bottom_month_profit = (name, month) => {
+  const data = {
+    'name': name,
+    'month': month
+  }
+  return post('bottom/month_profit', data)
+}
+
+export const get_bottom_order_profit = (name, date, symbol) => {
+  const data = {
+    'name': name,
+    'date': date,
+    'symbol': symbol
+  }
+  return post('bottom/order_profit', data)
+}
+
+export const get_bottom_order = (name, date, symbol) => {
+  const data = {
+    'name': name,
+    'date': date,
+    'symbol': symbol
+  }
+  return post('bottom/order', data)
+}

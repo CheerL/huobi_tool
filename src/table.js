@@ -6,7 +6,8 @@ import { Table, Button, Space, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import {
   get_profit, get_stat, get_month_profit,
-  get_currency_day_profit, get_record
+  get_currency_day_profit, get_record,
+  get_bottom_day_profit, get_bottom_month_profit, get_bottom_order_profit, get_bottom_order
 } from './data'
 
 const Expand = ({ record, func }) => {
@@ -535,6 +536,294 @@ export const CurrencyStatTable = () => {
   return <Table
     columns={columns} dataSource={data}
     tableLayout='fixed' scroll={{ x: 930 }}
+    expandable={{
+      columnWidth: 25,
+      expandedRowRender: record => <Expand record={record} func={expandFunc} />
+    }}
+  />
+}
+
+
+export const BottomProfitTable = () => {
+  const [data, setData] = React.useState([])
+  React.useEffect(() => {
+    get_bottom_day_profit('', '')
+      .then(res => {
+        setData(res)
+      })
+      .catch(err => {
+        console.log(err)
+        // throw err
+      })
+  }, [])
+  const expandFunc = (record, setText) => {
+    get_bottom_order_profit(record.name, record.date, '')
+      .then(res => {
+        const sell_main = res
+          .map(item => {
+            return `| ${item.symbol} ` +
+              `| ${item.sell_tm} ` +
+              `| ${item.sell_price.toPrecision(4)} ` +
+              `| ${item.buy_price.toPrecision(4)} ` +
+              `| ${item.profit.toFixed(1)} ` +
+              `| ${(Number(item.profit_rate)*100).toFixed(2)}% ` +
+              `| ${item.sell_amount} ` +
+              `| ${item.fee.toFixed(1)} ` +
+              `| ${item.sell_vol.toFixed(1)} |`
+          }).join('\n')
+        setText('| 币种 | 卖出时间 | 卖出价格 | 买入价格 | 收益 | 收益率 | 卖出量 | 卖出额 | 手续费 |\n' +
+          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
+          sell_main
+        )
+      })
+      .catch(err => {
+        console.log(err)
+        // throw err
+      })
+
+  }
+  const [dropdownIcon, dropdownFunc] = filterDropdown()
+  const names = Array.from(new Set(data.map(item => item.name)))
+  const columns = [
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      filters: names.map(item => ({
+        'text': item,
+        'value': item
+      })),
+      onFilter: (value, record) => record.name === value,
+    },
+    {
+      title: '日期',
+      width: 103,
+      dataIndex: 'date',
+      defaultSortOrder: 'descend',
+      sorter: (a, b) => a.date.localeCompare(b.date),
+      filterDropdown: dropdownFunc,
+      onFilter: (value, record) => record.date.indexOf(value) > -1,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '收益',
+      dataIndex: 'profit',
+      width: 80,
+      sorter: (a, b) => a.profit - b.profit,
+      render: text => `${text.toFixed(2)}`
+    },
+    {
+      title: '收益率',
+      width: 86,
+      dataIndex: 'profit_rate',
+      sorter: (a, b) => a.profit_rate - b.profit_rate,
+      render: text => `${(Number(text)*100).toFixed(2)}%`
+    }
+  ]
+
+  return <Table
+    columns={columns} dataSource={data}
+    tableLayout='fixed'
+    expandable={{
+      columnWidth: 25,
+      expandedRowRender: record => <Expand record={record} func={expandFunc} />
+    }}
+  />
+}
+
+export const BottomMonthProfitTable = () => {
+  const [data, setData] = React.useState([])
+  React.useEffect(() => {
+    get_bottom_month_profit('', '')  
+      .then(res => {
+        const summary = {}
+        res.map(item => {
+          let month = item.month
+          let cost = item.profit / item.profit_rate
+
+          if (month in summary) {
+            summary[month].profit += item.profit
+            summary[month].fee += item.fee
+            summary[month].cost += cost
+          } else {
+            summary[month] = {
+              'profit': item.profit,
+              'fee': item.fee,
+              'cost': cost
+            }
+          }
+          return null
+        })
+        for (const month in summary) {
+          let item = summary[month]
+          res = res.concat({
+            'fee': item.fee,
+            'profit': item.profit,
+            'key': res.length + 1,
+            'month': month,
+            'name': '总计',
+            'profit_rate': item.profit / item.cost
+          })
+        }
+        setData(res)
+      })
+      .catch(err => {
+        console.log(err)
+        // throw err
+      })
+  }, [])
+
+  const [dropdownIcon, dropdownFunc] = filterDropdown()
+  const names = Array.from(new Set(data.map(item => item.name)))
+  const columns = [
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      filters: names.map(item => ({
+        'text': item,
+        'value': item
+      })),
+      onFilter: (value, record) => record.name === value,
+    },
+    {
+      title: '月份',
+      width: 85,
+      dataIndex: 'month',
+      defaultSortOrder: 'descend',
+      sorter: (a, b) => a.month.localeCompare(b.month),
+      filterDropdown: dropdownFunc,
+      onFilter: (value, record) => record.month.indexOf(value) > -1,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '收益',
+      dataIndex: 'profit',
+      width: 80,
+      sorter: (a, b) => a.profit - b.profit,
+      render: text => `${text.toFixed(1)}`
+    },
+    {
+      title: '收益率',
+      width: 75,
+      dataIndex: 'profit_rate',
+      sorter: (a, b) => a.profit_rate - b.profit_rate,
+      render: text => `${(Number(text)*100).toFixed(2)}%`
+    },
+    {
+      title: '手续费',
+      width: 80,
+      dataIndex: 'fee',
+      sorter: (a, b) => a.fee - b.fee,
+      render: text => `${text.toFixed(2)}`
+    }
+  ]
+
+  return <Table columns={columns} dataSource={data} tableLayout='fixed' />
+}
+
+export const BottomOrderTable = () => {
+  const [data, setData] = React.useState([])
+  React.useEffect(() => {
+    get_bottom_order('', '', '')
+      .then(res => {
+        setData(res)
+      })
+      .catch(err => {
+        console.log(err)
+        // throw err
+      })
+  }, [])
+  const expandFunc = (item, setText) => {
+    setText('| 币种 | 订单编号 | 交易时间 | 价格 | 交易量 | 交易额 | 手续费 | 方向 | 状态 | \n' +
+          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
+          `| ${item.symbol} ` +
+          `| ${item.order_id} ` +
+          `| ${item.tm} ` +
+          `| ${item.price.toPrecision(4)} ` +
+          `| ${item.amount} ` +
+          `| ${item.vol.toFixed(1)} ` +
+          `| ${item.fee.toFixed(1)} ` +
+          `| ${item.direction} ` +
+          `| ${item.status} |` 
+        )
+    // get_bottom_order_profit(record.name, record.date, '')
+    //   .then(res => {
+    //     const sell_main = res
+    //       .map(item => {
+    //         return `| ${item.symbol} ` +
+    //           `| ${item.sell_tm} ` +
+    //           `| ${item.sell_price.toPrecision(4)} ` +
+    //           `| ${item.buy_price.toPrecision(4)} ` +
+    //           `| ${item.profit.toFixed(1)} ` +
+    //           `| ${(Number(item.profit_rate)*100).toFixed(2)}% ` +
+    //           `| ${item.sell_amount} ` +
+    //           `| ${item.fee.toFixed(1)} ` +
+    //           `| ${item.sell_vol.toFixed(1)} |`
+    //       }).join('\n')
+    //     setText('| 币种 | 卖出时间 | 卖出价格 | 买入价格 | 收益 | 收益率 | 卖出量 | 卖出额 | 手续费 |\n' +
+    //       '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
+    //       sell_main
+    //     )
+    //   })
+    //   .catch(err => {
+    //     console.log(err)
+    //     // throw err
+    //   })
+
+  }
+  const [dropdownIcon, dropdownFunc] = filterDropdown()
+  const names = Array.from(new Set(data.map(item => item.name)))
+  const columns = [
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      filters: names.map(item => ({
+        'text': item,
+        'value': item
+      })),
+      onFilter: (value, record) => record.name === value,
+    },
+    {
+      title: '日期',
+      width: 103,
+      dataIndex: 'date',
+      defaultSortOrder: 'descend',
+      sorter: (a, b) => a.date.localeCompare(b.date),
+      filterDropdown: dropdownFunc,
+      onFilter: (value, record) => record.date.indexOf(value) > -1,
+      filterIcon: dropdownIcon
+    },
+    {
+      title: '币种',
+      dataIndex: 'symbol',
+      width: 80,
+      sorter: (a, b) => a.symbol.localeCompare(b.symbol),
+      render: text => `${text.slice(0,-4)}/USDT`
+    },
+    {
+      title: '方向',
+      width: 86,
+      dataIndex: 'direction',
+      sorter: (a, b) => a.direction.localeCompare(b.direction),
+      // render: text => `${(Number(text)*100).toFixed(2)}%`
+      render: text => {
+        switch (text) {
+          case '买入': return <span className='type-high-profit'>买入</span>
+          default: return <span className='type-high-loss'>卖出</span>
+        }
+      },
+    },
+    {
+      title: '成交额',
+      width: 86,
+      dataIndex: 'vol',
+      sorter: (a, b) => a.vol - b.vol,
+      render: text => `${text.toFixed(1)}`
+    }
+  ]
+
+  return <Table
+    columns={columns} dataSource={data}
+    tableLayout='fixed'
     expandable={{
       columnWidth: 25,
       expandedRowRender: record => <Expand record={record} func={expandFunc} />
