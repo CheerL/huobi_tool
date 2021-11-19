@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router
 import { PriceChart } from './chart';
 import { 
   ProfitTable, MonthProfitTable, CurrencyDayTable, CurrencyStatTable,
-  BottomProfitTable, BottomMonthProfitTable, BottomOrderTable
+  BottomProfitTable, BottomMonthProfitTable, BottomOrderTable, BottomHoldingTable
 } from './table'
 import { Space } from 'antd'
 import { Button, Tabs } from 'antd-mobile'
@@ -14,6 +14,9 @@ function App() {
     <Router>
       <div className="App">
         <Switch>
+          <Route path='/bottom/holding'>
+            <BottomHoldingTable />
+          </Route>
           <Route path='/bottom/order'>
             <BottomOrderTable />
           </Route>
@@ -58,7 +61,6 @@ const Index = () => {
     {title: '抄底策略'},
   ]
   const onChange = (tab, index) => {
-    console.log(tab, index)
     if (index === 0) {
       history.push('/')
     } else {
@@ -91,7 +93,7 @@ const BottomIndex = () => {
     <Button onClick={() => history.push('/bottom/month_profit')}>月收益表</Button>
     <Button onClick={() => history.push('/bottom/profit')}>收益表</Button>
     <Button onClick={() => history.push('/bottom/order')}>交易记录</Button>
-    {/* <Button onClick={() => history.push('/bottom/holding')}>用户当前持有</Button> */}
+    <Button onClick={() => history.push('/bottom/holding')}>用户当前持有</Button>
   </Space>
 }
 

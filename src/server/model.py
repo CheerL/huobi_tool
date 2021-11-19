@@ -2,9 +2,10 @@ import os
 import re
 import configparser
 import time as _time
-from sqlalchemy import Column, create_engine, VARCHAR, INTEGER, REAL, TEXT, func, DATE, Table
+from sqlalchemy import Column, create_engine, VARCHAR, INTEGER, REAL, TEXT, func, Table
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
+import redis
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(ROOT, 'config.ini')
@@ -17,27 +18,64 @@ PGPORT = config.getint('data', 'PGPort')
 PGUSER = config.get('data', 'PGUser')
 PGPASSWORD = config.get('data', 'PGPassword')
 PGNAME = config.get('data', 'PGDatabase')
+RHOST = config.get('data', 'RHost')
+RPORT = config.getint('data', 'RPort')
+RPASSWORD = config.get('data', 'RPassword')
 
 Base = declarative_base()
 TRADE_CLASS = {}
 MS_IN_DAY = 60*60*24*1000
 
 
-class Target(Base):
-    __tablename__ = 'target'
-    id = Column(INTEGER, primary_key=True)
-    tm = Column(VARCHAR(15))
-    targets = Column(VARCHAR(500))
+class Redis(redis.StrictRedis):
+    pool = redis.ConnectionPool(host=RHOST, port=RPORT, db=0, password=RPASSWORD, max_connections=10)
+ 
+    def __init__(self, host=RHOST, port=RPORT,
+                db=0, password=RPASSWORD, socket_timeout=None,
+                socket_connect_timeout=None,
+                socket_keepalive=None, socket_keepalive_options=None,
+                connection_pool=None, unix_socket_path=None,
+                encoding='utf-8', encoding_errors='strict',
+                charset=None, errors=None,
+                decode_responses=False, retry_on_timeout=False,
+                ssl=False, ssl_keyfile=None, ssl_certfile=None,
+                ssl_cert_reqs='required', ssl_ca_certs=None,
+                ssl_check_hostname=False,
+                max_connections=None, single_connection_client=False,
+                health_check_interval=30, client_name=None, username=None):
+        super().__init__(host=host, port=port, db=db, password=password,
+                        socket_timeout=socket_timeout, 
+                        socket_connect_timeout=socket_connect_timeout,
+                        socket_keepalive=socket_keepalive,
+                        socket_keepalive_options=socket_keepalive_options,
+                        connection_pool=connection_pool or self.pool, unix_socket_path=unix_socket_path,
+                        encoding=encoding, encoding_errors=encoding_errors,
+                        charset=charset, errors=errors, decode_responses=decode_responses,
+                        retry_on_timeout=retry_on_timeout, ssl=ssl, ssl_keyfile=ssl_keyfile,
+                        ssl_certfile=ssl_certfile, ssl_cert_reqs=ssl_cert_reqs,
+                        ssl_ca_certs=ssl_ca_certs, ssl_check_hostname=ssl_check_hostname,
+                        max_connections=max_connections, single_connection_client=single_connection_client,
+                        health_check_interval=health_check_interval, client_name=client_name,
+                        username=username)
 
-    # @staticmethod
-    # def from_redis(key, value):
-    #     key = key.decode('utf-8')
-    #     targets = value.decode('utf-8')
-    #     tm = key.split('_')[1]
-    #     return Target(
-    #         tm=tm,
-    #         targets=targets
-    #     )
+    def scan_iter_with_data(self, match: str, count: int):
+        cursor = '0'
+        while cursor != 0:
+            cursor, keys = self.scan(cursor, match, count)
+            values = self.mget(keys)
+            if keys and values:
+                yield keys, values
+
+    def get_binance_price(self):
+        keys = self.keys(f'Binance_price_*')
+        if keys:
+            res = self.mget(keys)
+            return {
+                symbol.decode()[14:]: float(price.decode())
+                for symbol, price in zip(keys, res)
+            }
+        else:
+            return {}
 
 
 class Profit(Base):
@@ -472,6 +510,35 @@ def get_bottom_order(name='', date='', symbol=''):
             'direction': item.direction,
             'status': item.status,
             'fee': item.fee
+        } for index, item in enumerate(data)]
+        return res
+
+def get_bottom_holding(name='', date='', symbol=''):
+    now_price = Redis().get_binance_price()
+    with get_session() as session:
+        holding = Table('bottom_holding', Base.metadata,
+                    autoload=True, autoload_with=session.bind)
+        data = session.query(holding)
+        if name:
+            data = data.filter(holding.c.name == name)
+        if date:
+            data = data.filter(holding.c.date == date)
+        if symbol:
+            data = data.filter(holding.c.symbol == symbol)
+        data = data.all()
+        res = [{
+            'key': index,
+            'name': item.name,
+            'account': item.account,
+            'symbol': item.symbol,
+            'date': item.date,
+            'price': now_price[item.symbol],
+            'amount': item.amount,
+            'vol': now_price[item.symbol] * item.amount,
+            'buy_price': item.buy_price,
+            'buy_vol': item.vol,
+            'profit': now_price[item.symbol] * item.amount - item.vol,
+            'profit_rate': now_price[item.symbol] / item.buy_price - 1 if item.buy_price else 0
         } for index, item in enumerate(data)]
         return res
 

@@ -1,5 +1,6 @@
 const url = process.env.NODE_ENV === 'development' ?
-  'http://192.168.222.240:5008/api/' :
+  // 'http://192.168.222.240:5008/api/' :
+  'https://server.cheerl.space/api/' :
   'https://server.cheerl.space/api/'
 
 const post = (postfix, postdata) => {
@@ -115,4 +116,13 @@ export const get_bottom_order = (name, date, symbol) => {
     'symbol': symbol
   }
   return post('bottom/order', data)
+}
+
+export const get_bottom_holding = (name, date, symbol) => {
+  const data = {
+    'name': name,
+    'date': date,
+    'symbol': symbol
+  }
+  return post('bottom/holding', data)
 }

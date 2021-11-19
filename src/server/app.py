@@ -29,6 +29,7 @@ api_creator('bottom/day_profit', model.get_bottom_day_profit, ['name', 'date'])
 api_creator('bottom/month_profit', model.get_bottom_month_profit, ['name', 'month'])
 api_creator('bottom/order_profit', model.get_bottom_order_profit, ['name', 'date', 'symbol'])
 api_creator('bottom/order', model.get_bottom_order, ['name', 'date', 'symbol'])
+api_creator('bottom/holding', model.get_bottom_holding, ['name', 'date', 'symbol'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5008, debug=True)

@@ -171,3 +171,7 @@ div.bizcharts>div {
   margin-top: 3px;
   height: 8px;
 }
+
+.ant-table-expanded-row-fixed {
+  overflow: auto!important;
+}
