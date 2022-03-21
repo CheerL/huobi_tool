@@ -22,6 +22,8 @@ RHOST = config.get('data', 'RHost')
 RPORT = config.getint('data', 'RPort')
 RPASSWORD = config.get('data', 'RPassword')
 
+PGNAMES = [PGNAME, 'loss']
+
 Base = declarative_base()
 TRADE_CLASS = {}
 MS_IN_DAY = 60*60*24*1000
@@ -416,131 +418,141 @@ def get_stat():
         return res
 
 def get_bottom_day_profit(name='', date=''):
-    with get_session() as session:
-        day_profit = Table('bottom_day_profit_human', Base.metadata,
-                             autoload=True, autoload_with=session.bind)
-        data = session.query(day_profit)
-        if name:
-            data = data.filter(day_profit.c.name == name)
-        if date:
-            data = data.filter(day_profit.c.date == date)
-        data = data.all()
-        res = [{
-            'key': index,
-            'name': item.name,
-            'date': item.date,
-            'profit': item.profit,
-            'profit_rate': item.profit_rate
-        } for index, item in enumerate(data)]
-        return res
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            day_profit = Table('bottom_day_profit_human', Base.metadata,
+                                autoload=True, autoload_with=session.bind)
+            data = session.query(day_profit)
+            if name:
+                data = data.filter(day_profit.c.name == name)
+            if date:
+                data = data.filter(day_profit.c.date == date)
+            data = data.all()
+            res += [{
+                'key': len(res)+index,
+                'name': item.name,
+                'date': item.date,
+                'profit': item.profit,
+                'profit_rate': item.profit_rate
+            } for index, item in enumerate(data)]
+    return res
 
 def get_bottom_month_profit(name='', month=''):
-    with get_session() as session:
-        month_profit = Table('bottom_month_profit_human', Base.metadata,
-                             autoload=True, autoload_with=session.bind)
-        data = session.query(month_profit)
-        if name:
-            data = data.filter(month_profit.c.name == name)
-        if month:
-            data = data.filter(month_profit.c.month == month)
-        data = data.all()
-        res = [{
-            'key': index,
-            'name': item.name,
-            'month': item.month,
-            'profit': item.profit,
-            'profit_rate': item.profit_rate,
-            'fee': item.fee
-        } for index, item in enumerate(data)]
-        return res
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            month_profit = Table('bottom_month_profit_human', Base.metadata,
+                                autoload=True, autoload_with=session.bind)
+            data = session.query(month_profit)
+            if name:
+                data = data.filter(month_profit.c.name == name)
+            if month:
+                data = data.filter(month_profit.c.month == month)
+            data = data.all()
+            res += [{
+                'key': len(res)+index,
+                'name': item.name,
+                'month': item.month,
+                'profit': item.profit,
+                'profit_rate': item.profit_rate,
+                'fee': item.fee
+            } for index, item in enumerate(data)]
+    return res
     
 def get_bottom_order_profit(name='', date='', symbol=''):
-    with get_session() as session:
-        order_profit = Table('bottom_order_profit_human', Base.metadata,
-                             autoload=True, autoload_with=session.bind)
-        data = session.query(order_profit)
-        if name:
-            data = data.filter(order_profit.c.name == name)
-        if date:
-            data = data.filter(order_profit.c.sell_date == date)
-        if symbol:
-            data = data.filter(order_profit.c.symbol == symbol)
-        data = data.all()
-        res = [{
-            'key': index,
-            'name': item.name,
-            'symbol': item.symbol,
-            'sell_tm': item.sell_tm,
-            'sell_order_id': item.sell_order_id,
-            'sell_price': item.sell_price,
-            'sell_amount': item.sell_amount,
-            'sell_vol': item.sell_vol,
-            'buy_price': item.buy_price,
-            'buy_amount': item.buy_amount,
-            'buy_vol': item.buy_vol,
-            'date': item.sell_date,
-            'profit': item.profit,
-            'profit_rate': item.profit_rate,
-            'fee': item.fee
-        } for index, item in enumerate(data)]
-        return res
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            order_profit = Table('bottom_order_profit_human', Base.metadata,
+                                autoload=True, autoload_with=session.bind)
+            data = session.query(order_profit)
+            if name:
+                data = data.filter(order_profit.c.name == name)
+            if date:
+                data = data.filter(order_profit.c.sell_date == date)
+            if symbol:
+                data = data.filter(order_profit.c.symbol == symbol)
+            data = data.all()
+            res += [{
+                'key': len(res)+index,
+                'name': item.name,
+                'symbol': item.symbol,
+                'sell_tm': item.sell_tm,
+                'sell_order_id': item.sell_order_id,
+                'sell_price': item.sell_price,
+                'sell_amount': item.sell_amount,
+                'sell_vol': item.sell_vol,
+                'buy_price': item.buy_price,
+                'buy_amount': item.buy_amount,
+                'buy_vol': item.buy_vol,
+                'date': item.sell_date,
+                'profit': item.profit,
+                'profit_rate': item.profit_rate,
+                'fee': item.fee
+            } for index, item in enumerate(data)]
+    return res
 
 def get_bottom_order(name='', date='', symbol=''):
-    with get_session() as session:
-        order = Table('bottom_order_human', Base.metadata,
-                    autoload=True, autoload_with=session.bind)
-        data = session.query(order)
-        if name:
-            data = data.filter(order.c.name == name)
-        if date:
-            data = data.filter(order.c.date == date)
-        if symbol:
-            data = data.filter(order.c.symbol == symbol)
-        data = data.all()
-        res = [{
-            'key': index,
-            'name': item.name,
-            'symbol': item.symbol,
-            'tm': item.time,
-            'order_id': item.order_id,
-            'price': item.price,
-            'amount': item.amount,
-            'vol': item.vol,
-            'date': item.date,
-            'direction': item.direction,
-            'status': item.status,
-            'fee': item.fee
-        } for index, item in enumerate(data)]
-        return res
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            order = Table('bottom_order_human', Base.metadata,
+                        autoload=True, autoload_with=session.bind)
+            data = session.query(order)
+            if name:
+                data = data.filter(order.c.name == name)
+            if date:
+                data = data.filter(order.c.date == date)
+            if symbol:
+                data = data.filter(order.c.symbol == symbol)
+            data = data.all()
+            res += [{
+                'key': len(res)+index,
+                'name': item.name,
+                'symbol': item.symbol,
+                'tm': item.time,
+                'order_id': item.order_id,
+                'price': item.price,
+                'amount': item.amount,
+                'vol': item.vol,
+                'date': item.date,
+                'direction': item.direction,
+                'status': item.status,
+                'fee': item.fee
+            } for index, item in enumerate(data)]
+    return res
 
 def get_bottom_holding(name='', date='', symbol=''):
     now_price = Redis().get_binance_price()
-    with get_session() as session:
-        holding = Table('bottom_holding', Base.metadata,
-                    autoload=True, autoload_with=session.bind)
-        data = session.query(holding)
-        if name:
-            data = data.filter(holding.c.name == name)
-        if date:
-            data = data.filter(holding.c.date == date)
-        if symbol:
-            data = data.filter(holding.c.symbol == symbol)
-        data = data.all()
-        res = [{
-            'key': index,
-            'name': item.name,
-            'account': item.account,
-            'symbol': item.symbol,
-            'date': item.date,
-            'price': now_price[item.symbol],
-            'amount': item.amount,
-            'vol': now_price[item.symbol] * item.amount,
-            'buy_price': item.buy_price,
-            'buy_vol': item.vol,
-            'profit': now_price[item.symbol] * item.amount - item.vol,
-            'profit_rate': now_price[item.symbol] / item.buy_price - 1 if item.buy_price else 0
-        } for index, item in enumerate(data)]
-        return res
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            holding = Table('bottom_holding', Base.metadata,
+                        autoload=True, autoload_with=session.bind)
+            data = session.query(holding)
+            if name:
+                data = data.filter(holding.c.name == name)
+            if date:
+                data = data.filter(holding.c.date == date)
+            if symbol:
+                data = data.filter(holding.c.symbol == symbol)
+            data = data.all()
+            res += [{
+                'key': len(res)+index,
+                'name': item.name,
+                'account': item.account,
+                'symbol': item.symbol,
+                'date': item.date,
+                'price': now_price[item.symbol],
+                'amount': item.amount,
+                'vol': now_price[item.symbol] * item.amount,
+                'buy_price': item.buy_price,
+                'buy_vol': item.vol,
+                'profit': now_price[item.symbol] * item.amount - item.vol,
+                'profit_rate': now_price[item.symbol] / item.buy_price - 1 if item.buy_price else 0
+            } for index, item in enumerate(data)]
+    return res
 
 if __name__ == '__main__':
     res = get_stat()
