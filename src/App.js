@@ -6,14 +6,22 @@ import {
   ProfitTable, MonthProfitTable, CurrencyDayTable, CurrencyStatTable,
   BottomProfitTable, BottomMonthProfitTable, BottomOrderTable, BottomHoldingTable
 } from './table'
+import { KLineChart } from './kline'
 import { Space } from 'antd'
 import { Button, Tabs } from 'antd-mobile'
+import { Redirect } from 'react-router-dom';
 
 function App() {
   return (
     <Router>
       <div className="App">
         <Switch>
+          <Route path='/kline/:symbol/:level'>
+            <KLineChart />
+          </Route>
+          <Route path='/kline'>
+            <Redirect to='/kline/BTCUSDT/1min'/>
+          </Route>
           <Route path='/bottom/holding'>
             <BottomHoldingTable />
           </Route>
@@ -26,26 +34,29 @@ function App() {
           <Route path='/bottom/month_profit'>
             <BottomMonthProfitTable />
           </Route>
-          <Route path='/month_profit'>
+          <Route path='/morning/month_profit'>
             <MonthProfitTable />
           </Route>
-          <Route path='/profit'>
+          <Route path='/morning/profit'>
             <ProfitTable />
           </Route>
-          <Route path='/price'>
+          <Route path='/morning/price'>
             <PriceChart />
           </Route>
-          <Route path='/currency_day'>
+          <Route path='/morning/currency_day'>
             <CurrencyDayTable />
           </Route>
-          <Route path='/stat'>
+          <Route path='/morning/stat'>
             <CurrencyStatTable />
           </Route>
           <Route path='/bottom'>
             <Index />
           </Route>
-          <Route path='/'>
+          <Route path='/morning'>
             <Index />
+          </Route>
+          <Route path='/'>
+            <Redirect to='/bottom'/>
           </Route>
         </Switch>
 
@@ -57,20 +68,20 @@ function App() {
 const Index = () => {
   const history = useHistory()
   const tabs = [
-    {title: '凌晨策略'},
     {title: '抄底策略'},
+    {title: '凌晨策略'},
   ]
   const onChange = (tab, index) => {
     if (index === 0) {
-      history.push('/')
-    } else {
       history.push('/bottom')
+    } else {
+      history.push('/morning')
     }
   }
   // console.log(history)
-  return <Tabs tabs={tabs} onChange={onChange} initialPage={history.location.pathname === '/' ? 0 : 1}>
-    <MorningIndex />
+  return <Tabs tabs={tabs} onChange={onChange} initialPage={history.location.pathname === '/bottom' ? 0 : 1}>
     <BottomIndex />
+    <MorningIndex />
   </Tabs>
 }
 
@@ -79,11 +90,11 @@ const MorningIndex = () => {
   // console.log(history)
   return <Space direction="vertical" className='index-space-box' size={15}>
     {/* <Button onClick={() => history.push('/bottom')}><span className='type-high-profit'>抄底策略数据</span></Button> */}
-    <Button onClick={() => history.push('/month_profit')}>月收益表</Button>
-    <Button onClick={() => history.push('/profit')}>收益表</Button>
-    <Button onClick={() => history.push('/currency_day')}>币种单日收益表</Button>
-    <Button onClick={() => history.push('/stat')}>币种统计表</Button>
-    <Button onClick={() => history.push('/price')}>价格图</Button>
+    <Button onClick={() => history.push('/morning/month_profit')}>月收益表</Button>
+    <Button onClick={() => history.push('/morning/profit')}>收益表</Button>
+    <Button onClick={() => history.push('/morning/currency_day')}>币种单日收益表</Button>
+    <Button onClick={() => history.push('/morning/stat')}>币种统计表</Button>
+    <Button onClick={() => history.push('/morning/price')}>价格图</Button>
   </Space>
 }
 
@@ -94,6 +105,7 @@ const BottomIndex = () => {
     <Button onClick={() => history.push('/bottom/profit')}>收益表</Button>
     <Button onClick={() => history.push('/bottom/order')}>交易记录</Button>
     <Button onClick={() => history.push('/bottom/holding')}>用户当前持有</Button>
+    <Button onClick={() => history.push('/kline')}>K线图</Button>
   </Space>
 }
 

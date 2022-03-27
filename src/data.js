@@ -126,3 +126,18 @@ export const get_bottom_holding = (name, date, symbol) => {
   }
   return post('bottom/holding', data)
 }
+
+export const get_klines = (symbol, level, start, end) => {
+  const data = {
+    'symbol': symbol,
+    'level': level,
+    'start': start,
+    'end': end
+  }
+  return post('klines', data)
+}
+
+export const get_symbol_list = () => {
+  const data = {}
+  return post('klines/symbols', data)
+}

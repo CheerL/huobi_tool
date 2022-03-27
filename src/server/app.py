@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import model
+import kline_model
 
 app = Flask(__name__)
 CORS(app)
@@ -30,6 +31,9 @@ api_creator('bottom/month_profit', model.get_bottom_month_profit, ['name', 'mont
 api_creator('bottom/order_profit', model.get_bottom_order_profit, ['name', 'date', 'symbol'])
 api_creator('bottom/order', model.get_bottom_order, ['name', 'date', 'symbol'])
 api_creator('bottom/holding', model.get_bottom_holding, ['name', 'date', 'symbol'])
+
+api_creator('klines', kline_model.get_klines, ['symbol', 'level', 'start', 'end'])
+api_creator('klines/symbols', kline_model.get_symbol_list, [])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5008, debug=True)
