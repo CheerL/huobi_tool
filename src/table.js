@@ -10,6 +10,9 @@ import {
   get_bottom_day_profit, get_bottom_month_profit, get_bottom_order_profit, get_bottom_order, get_bottom_holding
 } from './data'
 import { useWindowDimensions } from './utils'
+import moment from 'moment'
+
+// window._moment = moment
 
 const Expand = ({ record, func, width }) => {
   const [text, setText] = React.useState('加载中')
@@ -891,11 +894,12 @@ export const BottomHoldingTable = () => {
               `|<span class=${color}>${(Number(item.profit_rate)*100).toFixed(2)}%</span>` +
               `| ${item.vol.toFixed(1)} ` +
               `| ${item.buy_vol.toFixed(1)} ` +
-              `| ${item.amount.toPrecision(6)} |`
+              `| ${item.amount.toPrecision(6)} `+
+              `| ${moment.utc(item.date, ['YYYY-MM-DD-HH', 'YYYY-MM-DD']).local().format('YYYY-MM-DD HH')} |`
           }).join('\n')
     setText(
-      '| 币种 | 当前价 | 买入价 | 浮盈 | 浮盈率 | 当前金额 | 买入金额 | 数量 |\n' +
-      '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n'
+      '| 币种 | 当前价 | 买入价 | 浮盈 | 浮盈率 | 当前金额 | 买入金额 | 数量 | 周期 |\n' +
+      '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n'
       + holding
     )
   }
@@ -958,7 +962,7 @@ export const BottomHoldingTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(550, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(600, win_width-50)}/>
     }}
     size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
   />

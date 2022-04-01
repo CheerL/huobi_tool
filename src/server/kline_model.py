@@ -5,6 +5,7 @@ from utils import config, get_level
 from user.binance_model import Candlestick
 from user.binance import BinanceMarketClient as Market
 import math
+import time
 
 PGHOST = config.get('data', 'PGHost')
 PGPORT = config.getint('data', 'PGPort')
@@ -37,6 +38,7 @@ class KlineRange(Base):
     end = Column(BIGINT)
     symbol = Column(VARCHAR(50))
     level = Column(VARCHAR(20))
+    last_update = Column(BIGINT)
     
     @classmethod
     def get_range(cls, session, symbol, level):
@@ -45,9 +47,9 @@ class KlineRange(Base):
                 cls.symbol == symbol,
                 cls.level == level
             ).first()
-            return data.start, data.end
+            return data.start, data.end, data.last_update
         except:
-            return 0, 0
+            return 0, 0, 0
     
     @classmethod
     def update(cls, session, symbol, level, start, end):
@@ -58,12 +60,14 @@ class KlineRange(Base):
             ).first()
             data.start = start
             data.end = end
+            data.last_update = int(time.time())
         except:
             data = cls(
                 symbol=symbol,
                 level=level,
                 start=start,
-                end=end
+                end=end,
+                last_update=int(time.time())
             )
         session.merge(data)
         session.commit()
@@ -120,7 +124,7 @@ def get_klines(symbol, level, start, end):
     with get_session() as session:
         _, level_ts = get_level(level)
         Kline = get_Kline(level)
-        saved_start, saved_end = KlineRange.get_range(session, symbol, level)
+        saved_start, saved_end, last_update = KlineRange.get_range(session, symbol, level)
         
         if saved_start == saved_end == 0:
             new_klines = market.get_candlestick(symbol, level, start_ts=start, end_ts=end)
@@ -130,7 +134,10 @@ def get_klines(symbol, level, start, end):
             if start <= saved_start-level_ts:
                 new_klines += market.get_candlestick(symbol, level, start_ts=start, end_ts=saved_start)
                 saved_start = start
-            if end >= saved_end+level_ts:
+            if (
+                (end >= saved_end + level_ts) or
+                (saved_end <= end < saved_end+level_ts and time.time() > last_update+3)
+            ):
                 session.query(Kline).filter(
                     Kline.ts==saved_end-1,
                     Kline.symbol==symbol
@@ -159,5 +166,5 @@ def get_klines(symbol, level, start, end):
 def get_symbol_list():
     return {
         symbol: [info.value_precision, info.amount_precision]
-        for symbol, info in market.all_symbol_info.item()
+        for symbol, info in market.all_symbol_info.items()
     }

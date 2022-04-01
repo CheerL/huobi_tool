@@ -117,6 +117,7 @@ const load = {
 
 export const KLineChart = () => {
   const initKlineNum = 1000
+  const update_ts = 5
   const domId = 'kline'
   const candlePane = 'candle_pane'
   let url_param = useParams()
@@ -141,48 +142,19 @@ export const KLineChart = () => {
   const [symbol, setSymbol] = React.useState(url_param.symbol.toUpperCase())
   const [symbolList, setSymbolList] = React.useState({})
   const [level, setLevel] = React.useState(url_param.level)
-  // let [start_, end_] = updateStartEnd(initKlineNum, level)
-  // const [start, setStart] = React.useState(start_)
-  // const [end, setEnd] = React.useState(end_) 
 
 
   const onSymbolChange = newSymbol => {
     if (newSymbol !== symbol) {
       setSymbol(newSymbol)
     }
-    // let [start_, end_] = updateStartEnd(initKlineNum, level)
-    // setStart(start_)
-    // setEnd(end_)
-    // history.push(`/kline/${newSymbol}/${level}`)
-    // load.loading()
-    // get_klines(newSymbol, level, start_, end_).then(
-    //   res => {
-    //     // console.log(data, res)
-    //     Kline.applyNewData(res)
-    //     load.loaded()
-    //   }
-    // )
   }
   const onLevelChange = newLevel => {
     if (newLevel !== level) {
       setLevel(newLevel)
     }
-    // let [start_, end_] = updateStartEnd(initKlineNum, newLevel)
-    // setStart(start_)
-    // setEnd(end_)
-    // history.push(`/kline/${symbol}/${newLevel}`)
-    // load.loading()
-    // get_klines(symbol, newLevel, start_, end_).then(
-    //   res => {
-    //     // console.log(data, res)
-    //     window.kLine.applyNewData(res)
-    //     load.loaded()
-    //   }
-    // )
   }
-  // const updateData = (symbol, level, start, end) => {
-    
-  // }/
+
   const updateBollParams = (newParams) => {
     Object.keys(newParams).forEach(name => {
       let load = newParams[name]
@@ -208,6 +180,24 @@ export const KLineChart = () => {
       }
     })
     setBollParams({...BollParams})
+    
+    let showNum = 0
+    Object.keys(BollParams).forEach(name => {
+      let load = BollParams[name]
+      if (load.show) {
+        showNum += 1
+      }
+    })
+
+    Kline.setStyleOptions({
+      candle: {
+        tooltip: {
+          rect: {
+            offsetTop: 5+15 * showNum
+          }
+        }
+      }
+    })
   }
 
   useEffect(() => {
@@ -218,7 +208,6 @@ export const KLineChart = () => {
       Object.keys(newBollParams).forEach(
         name => newBollParams[name].params.precision = pricePrecision
       )
-      // console.log(newBollParams, BollParams)
       updateBollParams(newBollParams)
     }
   }, [Kline, symbolList, symbol])
@@ -247,6 +236,22 @@ export const KLineChart = () => {
           }
         )
       })
+      let updateInterval = setInterval(() => {
+        const data = Kline.getDataList()
+        const last_data = data[data.length-1]
+        const start = last_data.timestamp / 1000
+        const end = Math.floor(new Date() / 1000)
+        get_klines(symbol, level, start, end).then(
+          res => {
+            res.forEach(item => {
+              Kline.updateData(item)
+            })
+          }
+        )
+      }, update_ts*1000)
+      return () => {
+        clearInterval(updateInterval)
+      }
     }}, [Kline, level, symbol])
 
   useEffect(() => {
@@ -267,6 +272,11 @@ export const KLineChart = () => {
             '低: ', '成交量: ', '成交额: ',
             '涨跌幅: ', '振幅: '
           ],
+          showRule: 'follow_cross',
+          showType: 'rect',
+          rect: {
+            offsetTop: 20
+          },
           values: data => {
             return [
               moment(data.timestamp).format('YYYY-MM-DD HH:mm'), 
@@ -290,7 +300,13 @@ export const KLineChart = () => {
               `${((data.close/data.open-1)*100).toFixed(2)}%`,
               `${((data.high-data.low)/data.open*100).toFixed(2)}% (${((data.high/data.open-1)*100).toFixed(2)}%, ${((data.low/data.open-1)*100).toFixed(2)}%)`,
             ]
-          }
+          },
+          text: {size: 9}
+        }
+      },
+      technicalIndicator: {
+        tooltip: {
+          text: {size: 9}
         }
       }
     })
@@ -358,7 +374,7 @@ export const KLineChart = () => {
           </Select>
         </Col>
         <Col flex='50px'>
-          <Setting params={BollParams} updateParams={updateBollParams}/>
+          <Setting Kline={Kline} params={BollParams} updateParams={updateBollParams}/>
         </Col>
       </Row>
   </Header>
@@ -369,7 +385,7 @@ export const KLineChart = () => {
   
 }
 
-const Setting = ({params, updateParams}) => {
+const Setting = ({Kline, params, updateParams}) => {
   const [configEditing, setConfigEditing] = React.useState(true)
   const onClickConfigEdit = () => {
     if (configEditing) {
@@ -415,7 +431,7 @@ const Setting = ({params, updateParams}) => {
         })
       }
       <Row>
-        <Button size='small' onClick={() => window.kLine.resize()}>
+        <Button size='small' onClick={() => Kline.resize()}>
           重置尺寸
         </Button>
       </Row>
