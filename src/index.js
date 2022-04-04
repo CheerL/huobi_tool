@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
+import RestrictedApp from './restrictedApp';
 import zhCN from 'antd/lib/locale/zh_CN';
 import { ConfigProvider } from 'antd';
 // import reportWebVitals from './reportWebVitals'
@@ -9,7 +10,7 @@ import { ConfigProvider } from 'antd';
 ReactDOM.render(
   <React.StrictMode>
     <ConfigProvider locale={zhCN}>
-      <App />
+      { window.restricted ? <RestrictedApp /> : <App /> }
     </ConfigProvider>
   </React.StrictMode>,
   document.getElementById('root')

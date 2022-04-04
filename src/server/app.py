@@ -25,6 +25,7 @@ api_creator('message', model.get_message, ['date', 'name', 'profit'])
 api_creator('currency_day', model.get_currency_day_profit, ['currency', 'date'])
 api_creator('record', model.get_record, ['profit_id', 'currency', 'date'])
 api_creator('stat', model.get_stat)
+api_creator('users', model.get_users, [])
 
 api_creator('bottom/day_profit', model.get_bottom_day_profit, ['name', 'date'])
 api_creator('bottom/month_profit', model.get_bottom_month_profit, ['name', 'month'])

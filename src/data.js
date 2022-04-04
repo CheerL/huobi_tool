@@ -3,6 +3,9 @@ const url = process.env.NODE_ENV === 'development' ?
   'https://server.cheerl.space/api/' :
   'https://server.cheerl.space/api/'
 
+window.restricted = window.location.host === 'report.cheerl.space' ? true : false
+// window.restricted = true
+
 const post = (postfix, postdata) => {
   return fetch(url + postfix, {
     method: 'POST',
@@ -140,4 +143,9 @@ export const get_klines = (symbol, level, start, end) => {
 export const get_symbol_list = () => {
   const data = {}
   return post('klines/symbols', data)
+}
+
+export const get_users = () => {
+  const data = {}
+  return post('users', data)
 }

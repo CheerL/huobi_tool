@@ -554,6 +554,19 @@ def get_bottom_holding(name='', date='', symbol=''):
             } for index, item in enumerate(data)]
     return res
 
+def get_users():
+    res = []
+    for db in PGNAMES:
+        with get_session(db=db) as session:
+            users = Table('users', Base.metadata,
+                        autoload=True, autoload_with=session.bind)
+            data = session.query(users)
+            data = data.all()
+            res += [{
+                'name': item.name,
+            } for index, item in enumerate(data)]
+    return res
+
 if __name__ == '__main__':
     res = get_stat()
     print(res)

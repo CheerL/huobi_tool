@@ -39,11 +39,11 @@ h3#总计 {
 }
 
 span.type-high-profit {
-  color: #ff4d4f
+  color: red
 }
 
 span.type-high-loss {
-  color: #58cb56
+  color: green
 }
 
 .am-button-primary:hover {

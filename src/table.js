@@ -11,8 +11,8 @@ import {
 } from './data'
 import { useWindowDimensions } from './utils'
 import moment from 'moment'
+import md5 from 'js-md5';
 
-// window._moment = moment
 
 const Expand = ({ record, func, width }) => {
   const [text, setText] = React.useState('加载中')
@@ -568,11 +568,12 @@ export const CurrencyStatTable = () => {
 }
 
 
-export const BottomProfitTable = () => {
+export const BottomProfitTable = ({ user }) => {
   const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
+
   React.useEffect(() => {
-    get_bottom_day_profit('', '')
+    get_bottom_day_profit(user, '')
       .then(res => {
         setData(res)
       })
@@ -580,14 +581,14 @@ export const BottomProfitTable = () => {
         console.log(err)
         // throw err
       })
-  }, [])
+  }, [user])
   const expandFunc = (record, setText) => {
     get_bottom_order_profit(record.name, record.date, '')
       .then(res => {
         const sell_main = res
           .map(item => {
             const color = item.profit > 0 ? 'red' : 'green'
-            return `| ${item.symbol} ` +
+            return `| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
               `| ${item.sell_tm} ` +
               `| ${item.sell_price.toPrecision(4)} ` +
               `| ${item.buy_price.toPrecision(4)}` +
@@ -658,11 +659,17 @@ export const BottomProfitTable = () => {
   />
 }
 
-export const BottomMonthProfitTable = () => {
-  const { height: win_height } = useWindowDimensions()
+BottomProfitTable.defaultProps = {
+  user: ''
+}
+
+export const BottomMonthProfitTable = ({ user }) => {
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
+  const [dayProfit, setDayProfit] = React.useState([])
+
   React.useEffect(() => {
-    get_bottom_month_profit('', '')
+    get_bottom_month_profit(user, '')
       .then(res => {
         const summary = {}
         res.map(item => {
@@ -682,16 +689,18 @@ export const BottomMonthProfitTable = () => {
           }
           return null
         })
-        for (const month in summary) {
-          let item = summary[month]
-          res = res.concat({
-            'fee': item.fee,
-            'profit': item.profit,
-            'key': res.length + 1,
-            'month': month,
-            'name': '总计',
-            'profit_rate': item.profit / item.cost
-          })
+        if (!user) {
+          for (const month in summary) {
+            let item = summary[month]
+            res = res.concat({
+              'fee': item.fee,
+              'profit': item.profit,
+              'key': res.length + 1,
+              'month': month,
+              'name': '总计',
+              'profit_rate': item.profit / item.cost
+            })
+          }
         }
         setData(res)
       })
@@ -699,10 +708,39 @@ export const BottomMonthProfitTable = () => {
         console.log(err)
         // throw err
       })
-  }, [])
+    get_bottom_day_profit(user, '')
+      .then(res => {
+        setDayProfit(res)
+      })
+      .catch(err => {
+        console.log(err)
+        // throw err
+      })
+  }, [user])
 
   const [dropdownIcon, dropdownFunc] = filterDropdown()
   const names = Array.from(new Set(data.map(item => item.name)))
+  const expandFunc = (record, setText) => {
+    if (record.name !== '总计') {
+      const profits = dayProfit.filter(item => {
+        return item.name === record.name && item.date.startsWith(record.month)
+      }).map(item => {
+          const color = item.profit > 0 ? "type-high-profit" : "type-high-loss"
+          return `| ${item.date} ` +
+            `| <span class=${color}>${item.profit.toFixed(2)}</span>` +
+            `| <span class=${color}>${(Number(item.profit_rate) * 100).toFixed(2)}%</span> |`
+        }).join('\n')
+      const user_detail_link = user ? `<a href='/${md5(user)}/profit'>交易详情</a>\n\n` : ''
+      setText(
+        user_detail_link +
+        '| 日期 | 收益 | 收益率 |\n' +
+        '| :----: | :----: | :----: |\n'
+        + profits
+      )
+    } else {
+      setText('')
+    }
+  }
   const columns = [
     {
       title: '姓名',
@@ -717,7 +755,7 @@ export const BottomMonthProfitTable = () => {
     },
     {
       title: '月份',
-      width: 80,
+      width: 70,
       dataIndex: 'month',
       defaultSortOrder: 'descend',
       sorter: (a, b) => a.month.localeCompare(b.month),
@@ -751,7 +789,15 @@ export const BottomMonthProfitTable = () => {
 
   return <Table columns={columns} dataSource={data} tableLayout='fixed'
     size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
+    expandable={{
+      columnWidth: 25,
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(700, win_width - 50)} />
+    }}
   />
+}
+
+BottomMonthProfitTable.defaultProps = {
+  user: ''
 }
 
 export const BottomOrderTable = () => {
