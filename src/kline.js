@@ -479,10 +479,10 @@ export const KLineChart = () => {
   useEffect(() => {
     if (history.location.pathname.startsWith('/kline')) {
       const [, , newSymbol, newLevel] = history.location.pathname.split('/')
-      if (newSymbol !== symbol) {
+      if (newSymbol && newSymbol !== symbol) {
         setSymbol(newSymbol)
       }
-      if (newLevel !== level) {
+      if (newLevel && newLevel !== level) {
         setLevel(newLevel)
       }
     }
