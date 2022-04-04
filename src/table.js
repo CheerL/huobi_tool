@@ -791,7 +791,7 @@ export const BottomMonthProfitTable = ({ user }) => {
     size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(700, win_width - 50)} />
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(300, win_width - 50)} />
     }}
   />
 }
