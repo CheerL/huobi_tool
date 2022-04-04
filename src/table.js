@@ -21,11 +21,15 @@ const Expand = ({ record, func, width }) => {
   }, [record, func])
   const outHtml = marked(text)
   // console.log(outHtml)
-  return <div style={{width: width}}>{HtmlReactParser(outHtml)}</div>
+  return <div style={{ width: width }}>{HtmlReactParser(outHtml)}</div>
 }
 
 const filterDropdown = () => {
-  const dropdownIcon = filtered => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+  const dropdownIcon = filtered => <SearchOutlined
+    // className='table-filter-icon'
+    style={{
+      color: filtered ? '#1890ff' : undefined
+    }} />
   const dropdownFunc = ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => <div style={{ padding: 8 }}>
     <Input
       placeholder='请输入'
@@ -81,7 +85,7 @@ const compareFilterFunc = (key) => (value, record) => {
 }
 
 export const ProfitTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_profit('', '')
@@ -154,14 +158,14 @@ export const ProfitTable = () => {
       dataIndex: 'profit',
       width: 70,
       sorter: (a, b) => a.profit - b.profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '收益率',
       width: 70,
       dataIndex: 'percent',
       sorter: (a, b) => a.percent - b.percent,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(2)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(2)}%</span>
     }
   ]
 
@@ -170,15 +174,15 @@ export const ProfitTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(350, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(350, win_width - 50)} />
     }}
     size='middle'
-    pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
+    pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
   />
 }
 
 export const MonthProfitTable = () => {
-  const {height: win_height} = useWindowDimensions()
+  const { height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_month_profit('', '')
@@ -232,7 +236,7 @@ export const MonthProfitTable = () => {
       })),
       fixed: true,
       onFilter: (value, record) => record.name === value,
-      render: text => text === '总计' ? <span style={{color:'red'}}>总计</span> : text
+      render: text => text === '总计' ? <span style={{ color: 'red' }}>总计</span> : text
     },
     {
       title: '月份',
@@ -249,14 +253,14 @@ export const MonthProfitTable = () => {
       dataIndex: 'profit',
       width: 70,
       sorter: (a, b) => a.profit - b.profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '收益率',
       width: 70,
       dataIndex: 'percent',
       sorter: (a, b) => a.percent - b.percent,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}%</span>
     },
     {
       title: '手续费',
@@ -268,12 +272,12 @@ export const MonthProfitTable = () => {
   ]
 
   return <Table columns={columns} dataSource={data} tableLayout='fixed'
-  size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
   />
 }
 
 export const CurrencyDayTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_currency_day_profit('', '')
@@ -351,7 +355,7 @@ export const CurrencyDayTable = () => {
       width: 70,
       dataIndex: 'profit',
       sorter: (a, b) => a.profit - b.profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '收益率',
@@ -361,7 +365,7 @@ export const CurrencyDayTable = () => {
       onFilter: compareFilterFunc('percent'),
       filterDropdown: dropdownFunc,
       filterIcon: dropdownIcon,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}%</span>
     },
     {
       title: '买入额',
@@ -375,7 +379,7 @@ export const CurrencyDayTable = () => {
       dataIndex: 'sell',
       render: text => `${text.toFixed(1)}`
     },
-    
+
     {
       title: '买入时间',
       width: 80,
@@ -404,14 +408,14 @@ export const CurrencyDayTable = () => {
     columns={columns} dataSource={data} tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(350, win_width-50)} />
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(350, win_width - 50)} />
     }}
-    size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 830, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 830, y: win_height - 100 }}
   />
 }
 
 export const CurrencyStatTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_stat()
@@ -508,7 +512,7 @@ export const CurrencyStatTable = () => {
       dataIndex: 'total_profit',
       width: 70,
       sorter: (a, b) => a.total_profit - b.total_profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '总收益率',
@@ -518,7 +522,7 @@ export const CurrencyStatTable = () => {
       onFilter: compareFilterFunc('total_percent'),
       filterDropdown: dropdownFunc,
       filterIcon: dropdownIcon,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}%</span>
     },
     {
       title: '盈利率',
@@ -557,15 +561,15 @@ export const CurrencyStatTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(650, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(650, win_width - 50)} />
     }}
-    size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 840, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 840, y: win_height - 100 }}
   />
 }
 
 
 export const BottomProfitTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_bottom_day_profit('', '')
@@ -582,13 +586,13 @@ export const BottomProfitTable = () => {
       .then(res => {
         const sell_main = res
           .map(item => {
-            const color=item.profit > 0 ? 'red' : 'green'
+            const color = item.profit > 0 ? 'red' : 'green'
             return `| ${item.symbol} ` +
               `| ${item.sell_tm} ` +
               `| ${item.sell_price.toPrecision(4)} ` +
               `| ${item.buy_price.toPrecision(4)}` +
               `| <span style="color:${color}">${item.profit.toFixed(1)}</span> ` +
-              `| <span style="color:${color}">${(Number(item.profit_rate)*100).toFixed(2)}%</span> ` +
+              `| <span style="color:${color}">${(Number(item.profit_rate) * 100).toFixed(2)}%</span> ` +
               `| ${item.sell_amount} ` +
               `| ${item.sell_vol.toFixed(1)} ` +
               `| ${item.fee.toFixed(1)} |`
@@ -632,14 +636,14 @@ export const BottomProfitTable = () => {
       dataIndex: 'profit',
       width: 70,
       sorter: (a, b) => a.profit - b.profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '收益率',
       width: 70,
       dataIndex: 'profit_rate',
       sorter: (a, b) => a.profit_rate - b.profit_rate,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{(text*100).toFixed(2)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{(text * 100).toFixed(2)}%</span>
     }
   ]
 
@@ -648,17 +652,17 @@ export const BottomProfitTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(700, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(700, win_width - 50)} />
     }}
-    size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
   />
 }
 
 export const BottomMonthProfitTable = () => {
-  const {height: win_height} = useWindowDimensions()
+  const { height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
-    get_bottom_month_profit('', '')  
+    get_bottom_month_profit('', '')
       .then(res => {
         const summary = {}
         res.map(item => {
@@ -709,7 +713,7 @@ export const BottomMonthProfitTable = () => {
       })),
       fixed: true,
       onFilter: (value, record) => record.name === value,
-      render: text => text === '总计' ? <span style={{color:'red'}}>总计</span> : text
+      render: text => text === '总计' ? <span style={{ color: 'red' }}>总计</span> : text
     },
     {
       title: '月份',
@@ -726,14 +730,14 @@ export const BottomMonthProfitTable = () => {
       dataIndex: 'profit',
       width: 70,
       sorter: (a, b) => a.profit - b.profit,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{text.toFixed(1)}</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{text.toFixed(1)}</span>
     },
     {
       title: '收益率',
       width: 70,
       dataIndex: 'profit_rate',
       sorter: (a, b) => a.profit_rate - b.profit_rate,
-      render: text => <span style={{color:text > 0 ? 'red':'green'}}>{(text*100).toFixed(2)}%</span>
+      render: text => <span style={{ color: text > 0 ? 'red' : 'green' }}>{(text * 100).toFixed(2)}%</span>
 
     },
     {
@@ -746,12 +750,12 @@ export const BottomMonthProfitTable = () => {
   ]
 
   return <Table columns={columns} dataSource={data} tableLayout='fixed'
-  size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
   />
 }
 
 export const BottomOrderTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [data, setData] = React.useState([])
   React.useEffect(() => {
     get_bottom_order('', '', '')
@@ -765,17 +769,17 @@ export const BottomOrderTable = () => {
   }, [])
   const expandFunc = (item, setText) => {
     setText('| 币种 | 订单编号 | 交易时间 | 价格 | 交易量 | 交易额 | 手续费 | 方向 | 状态 |\n' +
-          '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
-          `| ${item.symbol} ` +
-          `| ${item.order_id} ` +
-          `| ${item.tm} ` +
-          `| ${item.price.toPrecision(4)} ` +
-          `| ${item.amount} ` +
-          `| ${item.vol.toFixed(1)} ` +
-          `| ${item.fee.toFixed(1)} ` +
-          `| ${item.direction} ` +
-          `| ${item.status} |` 
-        )
+      '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
+      `| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
+      `| ${item.order_id} ` +
+      `| ${item.tm} ` +
+      `| ${item.price.toPrecision(4)} ` +
+      `| ${item.amount} ` +
+      `| ${item.vol.toFixed(1)} ` +
+      `| ${item.fee.toFixed(1)} ` +
+      `| ${item.direction} ` +
+      `| ${item.status} |`
+    )
 
   }
   const [dropdownIcon, dropdownFunc] = filterDropdown()
@@ -792,11 +796,12 @@ export const BottomOrderTable = () => {
       onFilter: (value, record) => record.name === value,
     },
     {
-      title: '日期',
-      width: 95,
-      dataIndex: 'date',
+      title: '时间',
+      width: 65,
+      dataIndex: 'tm',
       defaultSortOrder: 'descend',
-      sorter: (a, b) => a.date.localeCompare(b.date),
+      sorter: (a, b) => a.tm.localeCompare(b.tm),
+      render: text => moment(text).format('MM-DD HH:mm'),
       filterDropdown: dropdownFunc,
       onFilter: (value, record) => record.date.indexOf(value) > -1,
       filterIcon: dropdownIcon
@@ -804,16 +809,24 @@ export const BottomOrderTable = () => {
     {
       title: '币种',
       dataIndex: 'symbol',
-      width: 60,
-      sorter: (a, b) => a.symbol.localeCompare(b.symbol),
-      render: text => `${text.slice(0,-4)}`
+      width: 55,
+      // sorter: (a, b) => a.symbol.localeCompare(b.symbol),
+      render: text => `${text.toUpperCase().slice(0, -4)}`,
+      filterDropdown: dropdownFunc,
+      onFilter: (value, record) => record.symbol.indexOf(value.toUpperCase()) > -1,
+      filterIcon: dropdownIcon
     },
     {
       title: '方向',
       width: 55,
       dataIndex: 'direction',
-      sorter: (a, b) => a.direction.localeCompare(b.direction),
+      // sorter: (a, b) => a.direction.localeCompare(b.direction),
       // render: text => `${(Number(text)*100).toFixed(2)}%`
+      filters: [
+        { text: '买入', value: '买入' },
+        { text: '卖出', value: '卖出' },
+      ],
+      onFilter: (value, record) => record.direction === value,
       render: text => {
         switch (text) {
           case '买入': return <span className='type-high-profit'>买入</span>
@@ -823,11 +836,29 @@ export const BottomOrderTable = () => {
     },
     {
       title: '金额',
-      width: 55,
+      width: 47,
       dataIndex: 'vol',
-      sorter: (a, b) => a.vol - b.vol,
+      // sorter: (a, b) => a.vol - b.vol,
       render: text => `${text.toFixed(0)}`
-    }
+    },
+    {
+      title: '状态',
+      width: 58,
+      dataIndex: 'status',
+      // sorter: (a, b) => a.direction.localeCompare(b.direction),
+      // render: text => `${(Number(text)*100).toFixed(2)}%`
+      filters: [
+        { text: '完成', value: '完成' },
+        { text: '未完成', value: '未完成' },
+      ],
+      onFilter: (value, record) => record.status === value,
+      // render: text => {
+      //   switch (text) {
+      //     case '完成': return <span className='type-high-profit'>买入</span>
+      //     default: return <span className='type-high-loss'>卖出</span>
+      //   }
+      // },
+    },
   ]
 
   return <Table
@@ -835,14 +866,14 @@ export const BottomOrderTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(650, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(650, win_width - 50)} />
     }}
-    size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 360, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 360, y: win_height - 100 }}
   />
 }
 
 export const BottomHoldingTable = () => {
-  const {width: win_width, height: win_height} = useWindowDimensions()
+  const { width: win_width, height: win_height } = useWindowDimensions()
   const [detail, setDetail] = React.useState([])
   const [data, setData] = React.useState([])
   React.useEffect(() => {
@@ -885,18 +916,18 @@ export const BottomHoldingTable = () => {
   }, [])
   const expandFunc = (user, setText) => {
     const holding = detail.filter(item => item.name === user.name)
-          .map(item => {
-            const color = item.profit > 0 ? "type-high-profit" : "type-high-loss"
-            return `| ${item.symbol} ` +
-              `| ${item.price.toPrecision(4)} ` +
-              `| ${item.buy_price.toPrecision(4)} ` +
-              `|<span class=${color}>${item.profit.toFixed(2)}</span>`+
-              `|<span class=${color}>${(Number(item.profit_rate)*100).toFixed(2)}%</span>` +
-              `| ${item.vol.toFixed(1)} ` +
-              `| ${item.buy_vol.toFixed(1)} ` +
-              `| ${item.amount.toPrecision(6)} `+
-              `| ${moment.utc(item.date, ['YYYY-MM-DD-HH', 'YYYY-MM-DD']).local().format('YYYY-MM-DD HH')} |`
-          }).join('\n')
+      .map(item => {
+        const color = item.profit > 0 ? "type-high-profit" : "type-high-loss"
+        return `| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
+          `| ${item.price.toPrecision(4)} ` +
+          `| ${item.buy_price.toPrecision(4)} ` +
+          `|<span class=${color}>${item.profit.toFixed(2)}</span>` +
+          `|<span class=${color}>${(Number(item.profit_rate) * 100).toFixed(2)}%</span>` +
+          `| ${item.vol.toFixed(1)} ` +
+          `| ${item.buy_vol.toFixed(1)} ` +
+          `| ${item.amount.toPrecision(6)} ` +
+          `| ${moment.utc(item.date, ['YYYY-MM-DD-HH', 'YYYY-MM-DD']).local().format('YYYY-MM-DD HH')} |`
+      }).join('\n')
     setText(
       '| 币种 | 当前价 | 买入价 | 浮盈 | 浮盈率 | 当前金额 | 买入金额 | 数量 | 周期 |\n' +
       '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n'
@@ -949,9 +980,9 @@ export const BottomHoldingTable = () => {
       dataIndex: 'profit_rate',
       render: text => {
         if (Number(text) > 0) {
-          return <span className='type-high-profit'>{(Number(text)*100).toFixed(2)}%</span>
+          return <span className='type-high-profit'>{(Number(text) * 100).toFixed(2)}%</span>
         } else {
-          return <span className='type-high-loss'>{(Number(text)*100).toFixed(2)}%</span>
+          return <span className='type-high-loss'>{(Number(text) * 100).toFixed(2)}%</span>
         }
       }
     }
@@ -962,8 +993,8 @@ export const BottomHoldingTable = () => {
     tableLayout='fixed'
     expandable={{
       columnWidth: 25,
-      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(600, win_width-50)}/>
+      expandedRowRender: record => <Expand record={record} func={expandFunc} width={Math.max(600, win_width - 50)} />
     }}
-    size='middle' pagination={{pageSize:50, simple: true}} scroll={{x: 350, y:win_height-100}}
+    size='middle' pagination={{ pageSize: 50, simple: true }} scroll={{ x: 350, y: win_height - 100 }}
   />
 }

@@ -6,6 +6,7 @@ import { Layout, Row, Col, Button, Popover, Checkbox, InputNumber, Select, messa
 import { get_klines, get_symbol_list } from './data' 
 import { CaretLeftFilled } from '@ant-design/icons'
 import moment from 'moment'
+import { get_bottom_order } from './data';
 
 const { Header, Content } = Layout;
 
@@ -115,6 +116,54 @@ const load = {
   }
 }
 
+const annotationDrawExtend = (ctx, coordinate, texts, direction, color) => {
+  const num = texts.length
+  const { x:X, y:Y }= coordinate
+  ctx.font = '9px'
+  ctx.fillStyle = '#ffffff'
+  ctx.lineWidth = 1
+  ctx.strokeStyle = color
+
+  const triangleWidth = 8
+  const triangleHeight = 10
+  
+  const triangleBegin = 25
+  const triangleYBegin = Y + direction * triangleBegin
+  const triangleYEnd = Y + direction * (triangleBegin + triangleHeight)
+  
+  const textWidth = Math.max(...texts.map(text => ctx.measureText(text).width))
+  const rectWidth = textWidth + 8
+  const rectHeight = direction * (num * 12 + 4)
+  const rectX = X - rectWidth / 2
+  const rectY = triangleYEnd
+
+  ctx.beginPath()
+  ctx.moveTo(X, triangleYBegin)
+  ctx.lineTo(X - triangleWidth / 2, triangleYEnd)
+  ctx.lineTo(rectX, rectY)
+  ctx.lineTo(rectX, rectY + rectHeight)
+  ctx.lineTo(rectX + rectWidth, rectY + rectHeight)
+  ctx.lineTo(rectX + rectWidth, rectY)
+  ctx.lineTo(X + triangleWidth / 2, triangleYEnd)
+  ctx.closePath()
+  ctx.fill()
+  ctx.stroke()
+
+  ctx.fillStyle = color
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'left'
+  if (direction === -1) {
+    [...texts].reverse().forEach((text, i) => {
+      ctx.fillText(text, rectX+4, rectY + direction * (9 + 12 * i))
+    })
+  } else {
+    texts.forEach((text, i) => {
+      ctx.fillText(text, rectX+4, rectY + direction * (9 + 12 * i))
+    })
+  }
+  
+}
+
 export const KLineChart = () => {
   const initKlineNum = 1000
   const update_ts = 5
@@ -125,7 +174,7 @@ export const KLineChart = () => {
     url_param.symbol = 'BTCUSDT'
   }
   if (url_param.level===undefined) {
-    url_param.level = '1min'
+    url_param.level = '4hour'
   }
 
   const history = useHistory()
@@ -139,10 +188,11 @@ export const KLineChart = () => {
     BOLL7: { name: 'BOLL7', key: 6, params: {calcParams: [480, { value: 2, allowDecimal: true }], precision: 4}, show: false},
   })
   const [Kline, setKline] = React.useState()
-  const [symbol, setSymbol] = React.useState(url_param.symbol.toUpperCase())
   const [symbolList, setSymbolList] = React.useState({})
+  const [symbol, setSymbol] = React.useState(url_param.symbol.toUpperCase())
   const [level, setLevel] = React.useState(url_param.level)
-
+  const [orders, setOrders] = React.useState([])
+  const [showOrders, setShowOrders] = React.useState([])
 
   const onSymbolChange = newSymbol => {
     if (newSymbol !== symbol) {
@@ -213,15 +263,106 @@ export const KLineChart = () => {
   }, [Kline, symbolList, symbol])
 
   useEffect(() => {
+    const levelTs = levelTsMap[level]
+    const showDict = {}
+    orders.forEach(item => {
+      let ts = moment(item.tm).valueOf()
+      let timestamp = item.status === '完成' ? ts - ts % (levelTs * 1000): 0
+      let key = `${timestamp}${item.direction}${item.status}`
+      let showItem = showDict[key]
+      if (showItem === undefined) {
+        showItem = {
+          timestamp: timestamp,
+          direction: item.direction,
+          status: item.status,
+          orders: [
+            item
+          ]
+        }
+        showDict[key] = showItem
+      } else {
+        showItem.orders.push(item)
+      }
+      showItem.orders.sort((a, b) => a.name - b.name)
+    })
+    setShowOrders(Object.keys(showDict).map(each => showDict[each]))
+  }, [orders, level])
+
+  useEffect(() => {
+    if (Kline && showOrders.length) {
+      const now = moment().valueOf()
+      const levelTs = levelTsMap[level]
+      const annotation = showOrders.map(item => {
+        let amount = 0
+        let vol = 0
+        let texts = [`${item.direction}  ${item.status}:`]
+        item.orders.forEach(order => {
+          if (order.status === '完成') {
+            vol += order.price * order.amount
+            amount += order.amount
+          } else {
+            vol += order.price
+            amount += 1
+          }
+          texts.push(`${order.tm}: ${(order.amount*order.price).toFixed(1)} @${order.price} | ${order.name}`)
+        })
+        let price = vol / amount
+        let color = item.direction === '买入' ? '#ef9a9a' : '#80cbc4'
+        return {
+          point: {
+            timestamp: item.timestamp > 0 ?
+              item.timestamp:
+              now - now % (levelTs * 1000),
+            value: price
+          },
+          styles:{
+            offset: [0, 0],
+            position: 'point', 
+            symbol:{
+              size:6, 
+              type: item.status === '完成' ? 'circle' : 'triangle', 
+              color: color,
+              activeColor: color,
+              activeSize: 8
+            }
+          },
+          drawExtend: function ({ ctx, point, coordinate, viewport, isActive, styles }) {
+            if (isActive) {
+              const direction = item.direction === '买入' ? 1 : -1
+              annotationDrawExtend(ctx, coordinate, texts, direction, color)
+            }
+          },
+        }
+      })
+      Kline.createAnnotation(annotation, candlePane)
+    }
+    return () => {
+      if (Kline) {
+        Kline.removeAnnotation(candlePane) 
+      }
+    }
+  }, [Kline, showOrders])
+
+  useEffect(() => {
+    let updateInterval = undefined
     if (Kline) {
       const [start, end] = updateStartEnd(initKlineNum, level)
-      history.push(`/kline/${symbol}/${level}`)
-
+      const path = `/kline/${symbol}/${level}`
+      if (history.location.pathname === '/kline') {
+        history.replace(path)
+      } else if (history.location.pathname !== path) {
+        history.push(path)
+      }
       load.loading()
       get_klines(symbol, level, start, end).then(
         res => {
           Kline.applyNewData(res)
           load.loaded()
+        }
+      )
+      get_bottom_order('', '', symbol).then(
+        res => {
+          setOrders(res)
         }
       )
       Kline.loadMore(ts => {
@@ -236,7 +377,7 @@ export const KLineChart = () => {
           }
         )
       })
-      let updateInterval = setInterval(() => {
+      updateInterval = setInterval(() => {
         const data = Kline.getDataList()
         const last_data = data[data.length-1]
         const start = last_data.timestamp / 1000
@@ -249,10 +390,14 @@ export const KLineChart = () => {
           }
         )
       }, update_ts*1000)
-      return () => {
+      
+    }
+    return () => {
+      if (updateInterval) {
         clearInterval(updateInterval)
       }
-    }}, [Kline, level, symbol])
+    }
+  }, [Kline, level, symbol])
 
   useEffect(() => {
     const _Kline = init(domId)
@@ -297,7 +442,10 @@ export const KLineChart = () => {
                       (data.turnover / 1e3).toFixed(3)+'K' :
                       data.turnover
               }`,
-              `${((data.close/data.open-1)*100).toFixed(2)}%`,
+              {
+                value: `${((data.close/data.open-1)*100).toFixed(2)}%`,
+                color: data.close < data.open ? '#EF5350' : '#26A69A'
+              },
               `${((data.high-data.low)/data.open*100).toFixed(2)}% (${((data.high/data.open-1)*100).toFixed(2)}%, ${((data.low/data.open-1)*100).toFixed(2)}%)`,
             ]
           },
@@ -327,7 +475,7 @@ export const KLineChart = () => {
         <Col flex='50px'>
           <Button
             icon={<CaretLeftFilled />} size='small' type='text'
-            onClick={() => history.push('/bottom')}
+            onClick={() => history.goBack()}
           />
         </Col>
         <Col flex='120px'>

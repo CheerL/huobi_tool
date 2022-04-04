@@ -19,3 +19,8 @@ code {
 .App {
   height: 100%;
 }
+
+.ant-table-filter-trigger{
+  margin: 0 -4px 0 2px !important;
+  padding: 0 !important;
+}

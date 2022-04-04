@@ -20,7 +20,8 @@ function App() {
             <KLineChart />
           </Route>
           <Route path='/kline'>
-            <Redirect to='/kline/BTCUSDT/1min'/>
+            <KLineChart />
+            {/* <Redirect to='/kline/BTCUSDT/1min'/> */}
           </Route>
           <Route path='/bottom/holding'>
             <BottomHoldingTable />
