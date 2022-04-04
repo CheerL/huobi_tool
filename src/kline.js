@@ -169,7 +169,8 @@ export const KLineChart = () => {
   const update_ts = 5
   const domId = 'kline'
   const candlePane = 'candle_pane'
-  let url_param = useParams()
+  const history = useHistory()
+  const url_param = useParams()
   if (url_param.symbol === undefined) {
     url_param.symbol = 'BTCUSDT'
   }
@@ -177,7 +178,6 @@ export const KLineChart = () => {
     url_param.level = '4hour'
   }
 
-  const history = useHistory()
   const [BollParams, setBollParams] = React.useState({
     BOLL1: { name: 'BOLL1', key: 0, params: {calcParams: [20, { value: 2, allowDecimal: true }], precision: 4}, show: true},
     BOLL2: { name: 'BOLL2', key: 1, params: {calcParams: [40, { value: 2, allowDecimal: true }], precision: 4}, show: false},
@@ -192,7 +192,8 @@ export const KLineChart = () => {
   const [symbol, setSymbol] = React.useState(url_param.symbol.toUpperCase())
   const [level, setLevel] = React.useState(url_param.level)
   const [orders, setOrders] = React.useState([])
-  const [showOrders, setShowOrders] = React.useState([])
+  // const [showOrders, setShowOrders] = React.useState([])
+  const [showOrdersUpdate, setShowOrdersUpdate] = React.useState(0)
 
   const onSymbolChange = newSymbol => {
     if (newSymbol !== symbol) {
@@ -206,48 +207,50 @@ export const KLineChart = () => {
   }
 
   const updateBollParams = (newParams) => {
-    Object.keys(newParams).forEach(name => {
-      let load = newParams[name]
-      if (!BollParams.hasOwnProperty(name)) {
-        return
-      }
-
-      let oldShow = BollParams[name].show
-      if (load.hasOwnProperty('show') && typeof load.show !== 'boolean') {
-        delete load.show
-      }
-
-      BollParams[name] = {...BollParams[name], ...load}
-
-      if (load.hasOwnProperty('show') && load.show !== oldShow) {
-        if (load.show) {
-          Kline.createTechnicalIndicator({name: name, ...BollParams[name].params}, true, {id: candlePane})
-        } else {
-          Kline.removeTechnicalIndicator(candlePane, name)
+    if (Kline) {
+      Object.keys(newParams).forEach(name => {
+        let load = newParams[name]
+        if (!BollParams.hasOwnProperty(name)) {
+          return
         }
-      } else if (BollParams[name].show && load.hasOwnProperty('params')) {
-        Kline.overrideTechnicalIndicator({name: name, ...BollParams[name].params}, candlePane)
-      }
-    })
-    setBollParams({...BollParams})
-    
-    let showNum = 0
-    Object.keys(BollParams).forEach(name => {
-      let load = BollParams[name]
-      if (load.show) {
-        showNum += 1
-      }
-    })
 
-    Kline.setStyleOptions({
-      candle: {
-        tooltip: {
-          rect: {
-            offsetTop: 5+15 * showNum
+        let oldShow = BollParams[name].show
+        if (load.hasOwnProperty('show') && typeof load.show !== 'boolean') {
+          delete load.show
+        }
+
+        BollParams[name] = {...BollParams[name], ...load}
+
+        if (load.hasOwnProperty('show') && load.show !== oldShow) {
+          if (load.show) {
+            Kline.createTechnicalIndicator({name: name, ...BollParams[name].params}, true, {id: candlePane})
+          } else {
+            Kline.removeTechnicalIndicator(candlePane, name)
+          }
+        } else if (BollParams[name].show && load.hasOwnProperty('params')) {
+          Kline.overrideTechnicalIndicator({name: name, ...BollParams[name].params}, candlePane)
+        }
+      })
+      setBollParams({...BollParams})
+      
+      let showNum = 0
+      Object.keys(BollParams).forEach(name => {
+        let load = BollParams[name]
+        if (load.show) {
+          showNum += 1
+        }
+      })
+
+      Kline.setStyleOptions({
+        candle: {
+          tooltip: {
+            rect: {
+              offsetTop: 5+15 * showNum
+            }
           }
         }
-      }
-    })
+      })
+    }
   }
 
   useEffect(() => {
@@ -265,37 +268,36 @@ export const KLineChart = () => {
   useEffect(() => {
     const levelTs = levelTsMap[level]
     const showDict = {}
-    orders.forEach(item => {
-      let ts = moment(item.tm).valueOf()
-      let timestamp = item.status === '完成' ? ts - ts % (levelTs * 1000): 0
-      let key = `${timestamp}${item.direction}${item.status}`
-      let showItem = showDict[key]
-      if (showItem === undefined) {
-        showItem = {
-          timestamp: timestamp,
-          direction: item.direction,
-          status: item.status,
-          orders: [
-            item
-          ]
-        }
-        showDict[key] = showItem
-      } else {
-        showItem.orders.push(item)
-      }
-      showItem.orders.sort((a, b) => a.name - b.name)
-    })
-    setShowOrders(Object.keys(showDict).map(each => showDict[each]))
-  }, [orders, level])
-
-  useEffect(() => {
-    if (Kline && showOrders.length) {
+    if (Kline && orders.length) {
       const now = moment().valueOf()
-      const levelTs = levelTsMap[level]
-      const annotation = showOrders.map(item => {
+      orders.forEach(item => {
+        let ts = moment(item.tm).valueOf()
+        let timestamp = item.status === '完成' ? 
+          ts - ts % (levelTs * 1000): 
+          now - now % (levelTs * 1000)
+        let key = `${timestamp}${item.direction}${item.status}`
+        let showItem = showDict[key]
+        if (showItem === undefined) {
+          showItem = {
+            timestamp: timestamp,
+            direction: item.direction,
+            status: item.status,
+            orders: [
+              item
+            ]
+          }
+          showDict[key] = showItem
+        } else {
+          showItem.orders.push(item)
+        }
+        showItem.orders.sort((a, b) => a.name - b.name)
+      })
+
+      const annotation = Object.keys(showDict).map(key => {
+        let item = showDict[key]
         let amount = 0
         let vol = 0
-        let texts = [`${item.direction}  ${item.status}:`]
+        let texts = [`${item.direction} ${item.status}:`]
         item.orders.forEach(order => {
           if (order.status === '完成') {
             vol += order.price * order.amount
@@ -310,9 +312,7 @@ export const KLineChart = () => {
         let color = item.direction === '买入' ? '#ef9a9a' : '#80cbc4'
         return {
           point: {
-            timestamp: item.timestamp > 0 ?
-              item.timestamp:
-              now - now % (levelTs * 1000),
+            timestamp: item.timestamp,
             value: price
           },
           styles:{
@@ -341,11 +341,20 @@ export const KLineChart = () => {
         Kline.removeAnnotation(candlePane) 
       }
     }
-  }, [Kline, showOrders])
+  }, [Kline, orders, showOrdersUpdate, level])
+
+  useEffect(() => {
+    if (symbol) {
+      get_bottom_order('', '', symbol).then(
+        res => setOrders(res)
+      )
+    }
+  }, [symbol])
 
   useEffect(() => {
     let updateInterval = undefined
     if (Kline) {
+      const levelTs = levelTsMap[level]
       const [start, end] = updateStartEnd(initKlineNum, level)
       const path = `/kline/${symbol}/${level}`
       if (history.location.pathname === '/kline') {
@@ -360,14 +369,9 @@ export const KLineChart = () => {
           load.loaded()
         }
       )
-      get_bottom_order('', '', symbol).then(
-        res => {
-          setOrders(res)
-        }
-      )
+      
       Kline.loadMore(ts => {
         ts = ts / 1000
-        const levelTs = levelTsMap[level]
         const start = ts - 1000 * levelTs
         load.loading()
         get_klines(symbol, level, start, ts).then(
@@ -386,7 +390,11 @@ export const KLineChart = () => {
           res => {
             res.forEach(item => {
               Kline.updateData(item)
+              
             })
+            if (end > start + levelTs) {
+              setShowOrdersUpdate(end)
+            }
           }
         )
       }, update_ts*1000)
@@ -397,7 +405,7 @@ export const KLineChart = () => {
         clearInterval(updateInterval)
       }
     }
-  }, [Kline, level, symbol])
+  }, [Kline, level, symbol, history])
 
   useEffect(() => {
     const _Kline = init(domId)
@@ -458,9 +466,8 @@ export const KLineChart = () => {
         }
       }
     })
-    get_symbol_list().then(res => {
-      setSymbolList(res)
-    })
+    get_symbol_list().then(res => setSymbolList(res))
+    get_bottom_order('', '', symbol).then(res => setOrders(res))
     setKline(_Kline)
     
     window.Kline = _Kline
@@ -469,6 +476,18 @@ export const KLineChart = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (history.location.pathname.startsWith('/kline')) {
+      const [, , newSymbol, newLevel] = history.location.pathname.split('/')
+      if (newSymbol !== symbol) {
+        setSymbol(newSymbol)
+      }
+      if (newLevel !== level) {
+        setLevel(newLevel)
+      }
+    }
+  }, [history.location.pathname])
+  
   return (<Layout className='kline-layout'>
     <Header className='kline-header'>
       <Row>
