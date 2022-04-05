@@ -3,7 +3,7 @@ const url = process.env.NODE_ENV === 'development' ?
   'https://server.cheerl.space/api/' :
   'https://server.cheerl.space/api/'
 
-window.restricted = window.location.host !== 'report.cheerl.space' ? true : false
+window.restricted = window.location.host === 'report.cheerl.space' ? true : false
 // window.restricted = true
 
 const post = (postfix, postdata) => {
