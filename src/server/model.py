@@ -503,7 +503,7 @@ def get_bottom_order(name='', date='', symbol=''):
             if name:
                 data = data.filter(order.c.name == name)
             if date:
-                data = data.filter(order.c.date == date)
+                data = data.filter(order.c.time.like(f'{date}%'))
             if symbol:
                 data = data.filter(order.c.symbol == symbol)
             data = data.all()

@@ -585,23 +585,45 @@ export const BottomProfitTable = ({ user }) => {
   const expandFunc = (record, setText) => {
     get_bottom_order_profit(record.name, record.date, '')
       .then(res => {
+        let text = ''
         const sell_main = res
           .map(item => {
             const color = item.profit > 0 ? 'red' : 'green'
             return `| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
               `| ${item.sell_tm} ` +
-              `| ${item.sell_price.toPrecision(4)} ` +
-              `| ${item.buy_price.toPrecision(4)}` +
               `| <span style="color:${color}">${item.profit.toFixed(1)}</span> ` +
               `| <span style="color:${color}">${(Number(item.profit_rate) * 100).toFixed(2)}%</span> ` +
+              `| ${item.sell_price.toPrecision(4)} ` +
+              `| ${item.buy_price.toPrecision(4)}` +
               `| ${item.sell_amount} ` +
               `| ${item.sell_vol.toFixed(1)} ` +
               `| ${item.fee.toFixed(1)} |`
           }).join('\n')
-        setText('| 币种 | 卖出时间 | 卖出价格 | 买入价格 | 收益 | 收益率 | 卖出量 | 卖出额 | 手续费 |\n' +
+        text = '### 收益详情\n' +
+          '| 币种 | 卖出时间 | 收益 | 收益率 | 卖出价格 | 买入价格 | 交易量 | 交易额 | 手续费 |\n' +
           '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
           sell_main
-        )
+        setText(text)
+        get_bottom_order(record.name, record.date, '')
+          .then(res => {
+            const orders = res.map(item => {
+              const color = item.direction === '买入' ? 'red' : 'green'
+              return`| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
+                `| ${item.tm} ` +
+                `| <span style="color:${color}">${item.direction}</span> ` +
+                `| ${item.price.toPrecision(4)} ` +
+                `| ${item.amount} ` +
+                `| ${item.vol.toFixed(1)} ` +
+                `| ${item.fee.toFixed(1)} ` +
+                `| ${item.order_id} ` +
+                `| ${item.status} |`
+            }).join('\n')
+            text += '\n### 订单详情\n' +
+              '| 币种  | 交易时间 | 方向 | 价格 | 交易量 | 交易额 | 手续费 | 订单编号 | 状态 |\n' +
+              '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
+              orders
+            setText(text)
+          })
       })
       .catch(err => {
         console.log(err)
@@ -624,13 +646,14 @@ export const BottomProfitTable = ({ user }) => {
     },
     {
       title: '日期',
-      width: 95,
+      width: 80,
       dataIndex: 'date',
       defaultSortOrder: 'descend',
       sorter: (a, b) => a.date.localeCompare(b.date),
       filterDropdown: dropdownFunc,
       onFilter: (value, record) => record.date.indexOf(value) > -1,
-      filterIcon: dropdownIcon
+      filterIcon: dropdownIcon,
+      render: text => text.slice(2, 10)
     },
     {
       title: '收益',
@@ -730,12 +753,15 @@ export const BottomMonthProfitTable = ({ user }) => {
             `| <span class=${color}>${item.profit.toFixed(2)}</span>` +
             `| <span class=${color}>${(Number(item.profit_rate) * 100).toFixed(2)}%</span> |`
         }).join('\n')
-      const user_detail_link = user ? `<a href='/${md5(user)}/profit'>交易详情</a>\n\n` : ''
+      
+        const user_detail_link = user ? 
+          `\n\n<a href='/bottom/profit/${
+            window.restricted ? md5(user) : user
+          }'>点此查看每日交易详情</a>\n\n` : ''
       setText(
-        user_detail_link +
         '| 日期 | 收益 | 收益率 |\n' +
         '| :----: | :----: | :----: |\n'
-        + profits
+        + profits + user_detail_link
       )
     } else {
       setText('')
@@ -755,13 +781,14 @@ export const BottomMonthProfitTable = ({ user }) => {
     },
     {
       title: '月份',
-      width: 70,
+      width: 65,
       dataIndex: 'month',
       defaultSortOrder: 'descend',
       sorter: (a, b) => a.month.localeCompare(b.month),
       filterDropdown: dropdownFunc,
       onFilter: (value, record) => record.month.indexOf(value) > -1,
-      filterIcon: dropdownIcon
+      filterIcon: dropdownIcon,
+      render: text => text.slice(2, 7)
     },
     {
       title: '收益',
@@ -814,16 +841,17 @@ export const BottomOrderTable = () => {
       })
   }, [])
   const expandFunc = (item, setText) => {
-    setText('| 币种 | 订单编号 | 交易时间 | 价格 | 交易量 | 交易额 | 手续费 | 方向 | 状态 |\n' +
+    const color = item.direction === '买入' ? 'red' : 'green'
+    setText('| 币种  | 交易时间 | 方向 | 价格 | 交易量 | 交易额 | 手续费 | 订单编号 | 状态 |\n' +
       '| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |\n' +
       `| <a href='/kline/${item.symbol}/4hour'>${item.symbol}</a> ` +
-      `| ${item.order_id} ` +
       `| ${item.tm} ` +
+      `| <span style="color:${color}">${item.direction}</span> ` +
       `| ${item.price.toPrecision(4)} ` +
       `| ${item.amount} ` +
       `| ${item.vol.toFixed(1)} ` +
       `| ${item.fee.toFixed(1)} ` +
-      `| ${item.direction} ` +
+      `| ${item.order_id} ` +
       `| ${item.status} |`
     )
 
@@ -882,14 +910,14 @@ export const BottomOrderTable = () => {
     },
     {
       title: '金额',
-      width: 47,
+      width: 50,
       dataIndex: 'vol',
       // sorter: (a, b) => a.vol - b.vol,
       render: text => `${text.toFixed(0)}`
     },
     {
       title: '状态',
-      width: 58,
+      width: 55,
       dataIndex: 'status',
       // sorter: (a, b) => a.direction.localeCompare(b.direction),
       // render: text => `${(Number(text)*100).toFixed(2)}%`
@@ -994,7 +1022,7 @@ export const BottomHoldingTable = () => {
       onFilter: (value, record) => record.name === value,
     },
     {
-      title: '资产',
+      title: '现价',
       dataIndex: 'vol',
       width: 60,
       sorter: (a, b) => a.vol - b.vol,

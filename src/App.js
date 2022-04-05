@@ -70,19 +70,20 @@ const Index = () => {
   const history = useHistory()
   const tabs = [
     {title: '抄底策略'},
-    {title: '凌晨策略'},
+    // {title: '凌晨策略'},
   ]
   const onChange = (tab, index) => {
     if (index === 0) {
       history.push('/bottom')
-    } else {
-      history.push('/morning')
-    }
+    } 
+    // else {
+    //   history.push('/morning')
+    // }
   }
   // console.log(history)
   return <Tabs tabs={tabs} onChange={onChange} initialPage={history.location.pathname === '/bottom' ? 0 : 1}>
     <BottomIndex />
-    <MorningIndex />
+    {/* <MorningIndex /> */}
   </Tabs>
 }
 
